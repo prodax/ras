@@ -43,9 +43,9 @@ on_OK = False
 update = False
 
 global PBuzzer
-PinBuzzer = 13    # Pin for the Buzzer
-
-PBuzzer = PasBuz.PasBuz(PinBuzzer)
+PinSignalBuzzer = 13    # Pin to feed the Signal to the Buzzer - Signal Pin
+PinPowerBuzzer =12      # Pin for the feeding Voltage for the Buzzer - Power Pin
+PBuzzer = PasBuz.PasBuz(PinSignalBuzzer, PinPowerBuzzer) # Creating one Instance for our Passive Buzzer
 
 GPIO.setmode(GPIO.BOARD)  # Set's GPIO pins to BCM GPIO numbering
 
