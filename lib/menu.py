@@ -64,7 +64,7 @@ except:
 def inputStateDown(channel):
     global on_Down
     if on_Down == False:
-        print('3.3');
+        print('3.3')
         on_Down = True
     else:
         print('0')
@@ -73,7 +73,7 @@ def inputStateDown(channel):
 def inputStateOK(channel):
     global on_OK
     if on_OK == False:
-        print('3.3');
+        print('3.3')
         on_OK = True
     else:
         print('0')
@@ -473,7 +473,6 @@ def main():
     global error, lang
     global on_Down, on_OK
     start_time = time.time()
-    print("main() call")
 
     if have_internet():
 
@@ -568,7 +567,6 @@ def main():
                                 json_file = open('/home/pi/ras/dicts/data.json')
                                 json_data = json.load(json_file)
                                 json_file.close()
-                                print("HEREEEE")
                                 host = json_data["odoo_host"][0]
                                 port = json_data["odoo_port"][0]
                                 user_name = json_data["user_name"][0]
@@ -578,7 +576,6 @@ def main():
                                 timezone = json_data["timezone"][0]
                                 os.environ['TZ'] = tz_dic[timezone]
                                 time.tzset()
-                                print(time.strftime('%X %x %Z'))
                                 if "https" not in json_data:
                                     https_on = False
                                 else:
