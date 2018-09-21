@@ -330,8 +330,6 @@ def screen_drawing(device,info):
                 time.sleep(2)
         msg = "time"
     else:
-        _logger.debug("NO ERROR")
-        _logger.debug(lang)
         if info != "time":
             font2 = ImageFont.truetype(font_path, dic[lang][info][5]-2)
         else:
@@ -665,8 +663,6 @@ def m_functionality():
         json_data = json.load(json_file)
         json_file.close()
         lang = json_data["language"][0]
-        _logger.debug(lang)
-        _logger.debug(json_data["language"])
         lang2 = json_data["language"]
         if lang2 == "es":
             lang = "es"
