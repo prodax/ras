@@ -98,10 +98,10 @@ def get_ip():
         s.close()
     return IP
 
-dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['BYE!',40,1,0,0,24], 'Wifi1': ['WiFi Setting',35,2,20,0,24], 'Wifi2': ['Connect to 192.168.42.1',20,3,50,1,24], 'Wifi3': ['using Wifimanager setup',35,3,20,37,24], 'update': ['Resetting to update',20,3,55,35,24], 'config1': ['Browse ' + get_ip()+' port: 3000',25,3,55,15,20], 'config2': ['for device configuration',53,3,35,7,20]}
+dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',40,1,0,0,24], 'Wifi1': ['Configure Wifi',35,2,20,0,24], 'Wifi2': ['using AP mode',35,2,20,37,24] , 'Wifi3': ['Connect to 192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wifi Configured',40,1,0,0,24], 'update': ['Resetting to update',20,3,55,35,24], 'config': ['Browse ' + get_ip()+' port: 3000',25,3,55,15,20]}
 dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo communication failed',3,41,5,40,'Check the parameters',3,41,53,20,19], 'error2': [2,'RFID intrigrity failed',3,50,20,35,'Pass the card',3,48,45,48,20]}
 
-dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config1': ['Entra en ' + get_ip(),18,3,55,15,20], 'config2': ['para la configuracion',50,3,55,7,20]}
+dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config': ['Entra en ' + get_ip(),18,3,55,15,20]}
 dicerror_es = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Error de comunicacion',3,47,54,15,'Chequea los parametros',3,28,50,20,19], 'error2': [2,'Integridad RFID fallida',3,20,50,35,'Pasa la tarjeta',3,44,55,34,20]}
 
 dic = {'es': dic_es, 'en': dic_en}
@@ -111,6 +111,12 @@ tz_dic = {'-12:00': "Pacific/Kwajalein",  '-11:00': "Pacific/Samoa",'-10:00': "U
 
 # Create an object of the class MFRC522
 MIFAREReader = MFRC522.MFRC522()
+
+def configure_ap_mode():
+    print("Starting Wifi Connect")
+    reset_lib.reset_to_host_mode()
+    screen_drawing(device,"Wifi4")
+    time.sleep(5)
 
 def have_internet():
     print("check internet connection")
@@ -559,10 +565,8 @@ def main():
 
                         if pos == 0:
                             while not os.path.isfile("/home/pi/ras/dicts/data.json"):
-                                screen_drawing(device,"config1")
-                                time.sleep(2)
-                                screen_drawing(device,"config2")
-                                time.sleep(2)
+                                screen_drawing(device,"config")
+                                time.sleep(4)
                             if os.path.isfile("/home/pi/ras/dicts/data.json"):
                                 json_file = open('/home/pi/ras/dicts/data.json')
                                 json_data = json.load(json_file)
@@ -633,8 +637,9 @@ def main():
         screen_drawing(device,"Wifi3")
         time.sleep(2)
         if not reset_lib.is_wifi_active():
-            print("Starting Wifi Connect")
-            reset_lib.reset_to_host_mode()
+            configure_ap_mode()
+            main()
+
 
 def m_functionality():
     global device, lang
@@ -682,12 +687,10 @@ def m_functionality():
         screen_drawing(device," ")
         GPIO.cleanup()
         if reset == True:
-            screen_drawing(device," ")
-            reset_lib.reset_to_host_mode()
+            reset = False
+            configure_ap_mode()
         return update
 
     except KeyboardInterrupt:
         GPIO.cleanup()
         pass
-
-#m_functionality()

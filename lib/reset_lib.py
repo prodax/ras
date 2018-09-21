@@ -12,4 +12,3 @@ def is_wifi_active():
 
 def reset_to_host_mode():
     os.system('sudo wifi-connect --portal-ssid "RFID Attendance System"')
-    os.system('sudo reboot')
