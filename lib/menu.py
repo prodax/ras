@@ -1,34 +1,36 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-try:
-    import RPi.GPIO as GPIO
-except:
-    import RPiSim as GPIO
-
-from . import MFRC522
+#!/usr/bin/env python3
 
 import xmlrpc.client as xmlrpclib
 import socket
-from urllib.parse import urlparse as urlparse
+import json
+import binascii
+import random
+import os, sys, time
 
 try:
     import httplib
 except:
     import http.client as httplib
 
-import binascii
-import random
-import os, sys, time
+try:
+    import RPi.GPIO as GPIO
+except:
+    import RPiSim as GPIO
 
-from .demo_opts import get_device
 from luma.core.render import canvas
 from PIL import ImageFont
 from PIL import Image
 from datetime import datetime
+from urllib.parse import urlparse as urlparse
 
+from .demo_opts import get_device
+from . import MFRC522
 from . import reset_lib
-import json
 from . import PasBuz
+
+import logging
+_logger = logging.getLogger(__name__)
+
 
 error = False
 card_found = False
@@ -58,32 +60,32 @@ try:
     INPUT_PIN_OK = 29           # Pin for the OK button
     GPIO.setup(INPUT_PIN_OK, GPIO.IN)  # Set our input pin to be an input
 except:
-    print("Avoid GPIO setmode and setup")
+    _logger.debug("Avoid GPIO setmode and setup")
 
 # Create a function to run when the input is high
 def inputStateDown(channel):
     global on_Down
     if on_Down == False:
-        print('3.3')
+        _logger.debug('3.3')
         on_Down = True
     else:
-        print('0')
+        _logger.debug('0')
         on_Down = False
 
 def inputStateOK(channel):
     global on_OK
     if on_OK == False:
-        print('3.3')
+        _logger.debug('3.3')
         on_OK = True
     else:
-        print('0')
+        _logger.debug('0')
         on_OK = False
 
 try:
     GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown, bouncetime=200)
     GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK, bouncetime=200)
 except:
-    print("Avoid GPIO add_event_detect")
+    _logger.debug("Avoid GPIO add_event_detect")
 
 
 def get_ip():
@@ -98,10 +100,10 @@ def get_ip():
         s.close()
     return IP
 
-dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',40,1,0,0,24], 'Wifi1': ['Configure Wifi',35,2,20,0,24], 'Wifi2': ['using AP mode',35,2,20,37,24] , 'Wifi3': ['Connect to 192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wifi Configured',40,1,0,0,24], 'update': ['Resetting to update',20,3,55,35,24], 'config': ['Browse ' + get_ip()+' port: 3000',25,3,55,15,20]}
+dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',40,1,0,0,24], 'Wifi1': ['Configure Wifi',35,2,20,0,24], 'Wifi2': ['using AP mode',35,2,20,37,24] , 'Wifi3': ['Connect to 192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wifi Configured',40,1,0,0,24], 'update': ['Resetting to update',20,3,55,35,24], 'config1': ['Browse ' + get_ip()+' port: 3000',25,3,55,15,20]}
 dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo communication failed',3,41,5,40,'Check the parameters',3,41,53,20,19], 'error2': [2,'RFID intrigrity failed',3,50,20,35,'Pass the card',3,48,45,48,20]}
 
-dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config': ['Entra en ' + get_ip(),18,3,55,15,20]}
+dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config1': ['Entra en ' + get_ip(),18,3,55,15,20]}
 dicerror_es = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Error de comunicacion',3,47,54,15,'Chequea los parametros',3,28,50,20,19], 'error2': [2,'Integridad RFID fallida',3,20,50,35,'Pasa la tarjeta',3,44,55,34,20]}
 
 dic = {'es': dic_es, 'en': dic_en}
@@ -113,21 +115,21 @@ tz_dic = {'-12:00': "Pacific/Kwajalein",  '-11:00': "Pacific/Samoa",'-10:00': "U
 MIFAREReader = MFRC522.MFRC522()
 
 def configure_ap_mode():
-    print("Starting Wifi Connect")
+    _logger.debug("Starting Wifi Connect")
     reset_lib.reset_to_host_mode()
     screen_drawing(device,"Wifi4")
     time.sleep(5)
 
 def have_internet():
-    print("check internet connection")
+    _logger.debug("check internet connection")
     conn = httplib.HTTPConnection("www.google.com", timeout=10)
     try:
         conn.request("HEAD", "/")
-        print("Have internet")
+        _logger.debug("Have internet")
         conn.close()
         return True
     except Exception as e:
-        print(e)
+        _logger.debug(e)
         conn.close()
         return False
 
@@ -152,7 +154,7 @@ def scan_card(MIFAREReader,odoo):
 
     # If a card is found
     if status == MIFAREReader.MI_OK:
-        print("Card detected")
+        _logger.debug("Card detected")
         card_found = True
 
     # Get the UID of the card
@@ -161,11 +163,11 @@ def scan_card(MIFAREReader,odoo):
     # If we have the UID, continue
     if status == MIFAREReader.MI_OK:
 
-        # Print(UID)
-        print("Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
+        # _logger.debug(UID)
+        _logger.debug("Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
         card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[-1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[-1] 
 
-        print(card)
+        _logger.debug(card)
         if card == admin_id:
             adm = True
             #turn_off = True
@@ -183,21 +185,21 @@ def scan_card(MIFAREReader,odoo):
             MIFAREReader.MFRC522_Read(8)
             MIFAREReader.MFRC522_StopCrypto1()
             if odoo == True:
-                print("#################################"
+                _logger.debug("#################################"
                       "################################################")
-                print("PARAMETERS: " + str(host) + " / " + str(
+                _logger.debug("PARAMETERS: " + str(host) + " / " + str(
                       port) + " / " + str(user_name) + " / " + str(
                       user_password) + " / " + str(dbname))
-                print("##################################"
+                _logger.debug("##################################"
                       "###############################################")
                 try:
                     connection(host, port, user_name, user_password, dbname)
                     res = object_facade.execute(
                             dbname, user_id, user_password, "hr.employee",
                             "register_attendance", card)
-                    print(res)
+                    _logger.debug(res)
                     msg = res["action"]
-                    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"+msg)
+                    _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"+msg)
                     if res["action"] == "check_in":
                         PBuzzer.CheckIn()   # Acoustic Melody for Check In
                     if res["action"] == "check_out":
@@ -206,18 +208,18 @@ def scan_card(MIFAREReader,odoo):
                         PBuzzer.BuzError()  #Acoustic Melody for Error - RFID Card is not in Database
                     error = False
                 except:
-                    print("No Odoo connection")
+                    _logger.debug("No Odoo connection")
                     msg = "error1"
                     error = True
                 time.sleep(1)
             else:
                 error = False
         else:
-            print("Authentication error")
+            _logger.debug("Authentication error")
             #msg = "error2"
             #error = True
     else:
-        print("HERE")
+        _logger.debug("HERE")
         error = False
 
 
@@ -226,21 +228,21 @@ def connection(host, port, user, user_pw, database):
     user_password = user_pw
     global db_name, https_on
     dbname = database
-    print("CONNEC 1")
+    _logger.debug("CONNEC 1")
     if https_on: #port in ['443', '80', '']:
         url_template = "https://%s/xmlrpc/%s"
         login_facade = xmlrpclib.ServerProxy(url_template % (
         host, 'common'))
     else:
         url_template = "http://%s:%s/xmlrpc/%s"
-        print("URL: ", url_template % (host, port, 'common'))
+        _logger.debug("URL: %s", url_template % (host, port, 'common'))
         login_facade = xmlrpclib.ServerProxy(url_template % (
             host, port, 'common'))
-    print("CONNEC 2")
+    _logger.debug("CONNEC 2")
     global user_id
     user_id = login_facade.login(database, user, user_pw)
-    print("USER: ", user_id)
-    print("CONNEC 3")
+    _logger.debug("USER: %s", user_id)
+    _logger.debug("CONNEC 3")
     global object_facade
     if https_on: #port in ['443', '80', '']:
         object_facade = xmlrpclib.ServerProxy(url_template % (
@@ -248,8 +250,8 @@ def connection(host, port, user, user_pw, database):
     else:
          object_facade = xmlrpclib.ServerProxy(url_template % (
             host, port, 'object'))
-    print("object_facade: ", object_facade)
-    print("CONNEC 4")
+    _logger.debug("object_facade: %s", object_facade)
+    _logger.debug("CONNEC 4")
 
 
 def menu(device,msg1,msg2,msg3,msg4,loc):
@@ -292,9 +294,9 @@ def screen_drawing(device,info):
     font_path = os.path.abspath(os.path.join(
                                 '/home/pi/ras/fonts', 'Orkney.ttf'))
     if error == True:
-        print("ERROR: " + str(error))
+        _logger.debug("ERROR: " + str(error))
         PBuzzer.BuzError()        # Passive Buzzer gives Error Signal
-        print(info)
+        _logger.debug(info)
         code = info.replace('error', '')
         font2 = ImageFont.truetype(font_path, dicerror[lang][info][11]-3)
         fonte = ImageFont.truetype(font_path, 28)
@@ -303,9 +305,9 @@ def screen_drawing(device,info):
             draw.text((17, 5), "ERROR", font=fonte, fill="white")
             draw.text((14, 37), "CODE " + code, font=fonte, fill="white")
         time.sleep(2)
-        print(str(dicerror[lang][info][0]))
+        _logger.debug(str(dicerror[lang][info][0]))
         for i in range(0,dicerror[lang][info][0]+1):
-            print("FOR: " + str(i))
+            _logger.debug("FOR: " + str(i))
             with canvas(device) as draw:
                 #draw.rectangle(device.bounding_box, outline="white")
                 try:
@@ -321,16 +323,16 @@ def screen_drawing(device,info):
                             draw.text((dicerror[lang][info][3+(i*5)], 4), a, font=font2, fill="white")
                             draw.text((dicerror[lang][info][4+(i*5)], 23), b, font=font2, fill="white")
                             draw.text((dicerror[lang][info][5+(i*5)], 42), c, font=font2, fill="white")
-                    print("1")
+                    _logger.debug("1")
                     time.sleep(2)
-                    print("2")
+                    _logger.debug("2")
                 except:
                     draw.text((20, 20), info, font=font2, fill="white")
                 time.sleep(2)
         msg = "time"
     else:
-        print("NO ERROR")
-        print(lang)
+        _logger.debug("NO ERROR")
+        _logger.debug(lang)
         if info != "time":
             font2 = ImageFont.truetype(font_path, dic[lang][info][5]-2)
         else:
@@ -423,7 +425,7 @@ def rfid_hr_attendance():
     if card_found == True:
         screen_drawing(device,msg)
         cnt_found = cnt_found + 1
-        print("CNT_FOUND" + str(cnt_found))
+        _logger.debug("CNT_FOUND" + str(cnt_found))
         if cnt_found >= 5:
             card_found = False
     else:
@@ -439,17 +441,17 @@ def rfid_reader():
 
 def reset_settings():
     global reset
-    print("Reset Settings selected")
+    _logger.debug("Reset Settings selected")
     reset = True
 
 def back():
     global turn_off
-    print("Back selected")
+    _logger.debug("Back selected")
     turn_off = True
 
 def change_language():
     global lang
-    print("Change idiom selected")
+    _logger.debug("Change idiom selected")
 
     if lang == "es":
         idiom = {'language' : 'en'}
@@ -460,7 +462,7 @@ def change_language():
 
 def settings():
 
-    print("Other settings selected")
+    _logger.debug("Other settings selected")
 
 
 ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back, '4': reset_settings, '5': change_language}
@@ -565,7 +567,7 @@ def main():
 
                         if pos == 0:
                             while not os.path.isfile("/home/pi/ras/dicts/data.json"):
-                                screen_drawing(device,"config")
+                                screen_drawing(device,"config1")
                                 time.sleep(4)
                             if os.path.isfile("/home/pi/ras/dicts/data.json"):
                                 json_file = open('/home/pi/ras/dicts/data.json')
@@ -589,11 +591,11 @@ def main():
                                     update = False
                                 else:
                                     update = True
-                                    print("THIS IS UPDATE: " + str(update))
+                                    _logger.debug("THIS IS UPDATE: " + str(update))
                             else:
                                 raise ValueError("It is not a file!")
                         else:
-                            print("POS " + str(pos))
+                            _logger.debug("POS " + str(pos))
                         if flag_m == 0:
                             ops[str(pos)]() #rfid_hr_attendance()
                         else:
@@ -610,7 +612,7 @@ def main():
                             else:
                                 update = True
                         if adm == True:
-                            print(str(adm))
+                            _logger.debug(str(adm))
                         json_file = open('/home/pi/ras/dicts/idiom.json')
                         json_data = json.load(json_file)
                         json_file.close()
@@ -626,8 +628,8 @@ def main():
                     except KeyboardInterrupt:
                         break
                 pos = 0
-                print("on_OK_old: " + str(on_OK_old))
-                print("on_OK: " + str(on_OK))
+                _logger.debug("on_OK_old: " + str(on_OK_old))
+                _logger.debug("on_OK: " + str(on_OK))
 
     else:
         screen_drawing(device,"Wifi1")
@@ -645,7 +647,7 @@ def m_functionality():
     global device, lang
     global update
     global reset
-    print("m_functionality() call")
+    _logger.debug("m_functionality() call")
     try:
         device = get_device()
         img_path = os.path.abspath(os.path.join(
@@ -664,8 +666,8 @@ def m_functionality():
         json_data = json.load(json_file)
         json_file.close()
         lang = json_data["language"][0]
-        print(lang)
-        print(json_data["language"])
+        _logger.debug(lang)
+        _logger.debug(json_data["language"])
         lang2 = json_data["language"]
         if lang2 == "es":
             lang = "es"
