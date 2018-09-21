@@ -12,3 +12,8 @@ def is_wifi_active():
 
 def reset_to_host_mode():
     os.system('sudo wifi-connect --portal-ssid "RFID Attendance System"')
+
+def update_repo():
+	os.system('cd /home/pi/ras && \
+				sudo git fetch origin master && \
+				sudo git reset --hard origin/master')
