@@ -100,8 +100,8 @@ def get_ip():
         s.close()
     return IP
 
-dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',40,1,0,0,24], 'Wifi1': ['Configure Wifi',35,2,20,0,24], 'Wifi2': ['using AP mode',35,2,20,37,24] , 'Wifi3': ['Connect to 192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi Connection',35,2,15,15,20], 'update': ['Resetting to update',20,3,55,35,24], 'config1': ['Connect to ' + get_ip() + ':3000',35,3,55,5,15]}
-dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo communication failed',3,41,5,40,'Check the parameters',3,41,53,20,19], 'error2': [2,'RFID intrigrity failed',3,50,20,35,'Pass the card',3,48,45,48,20]}
+dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED;IN',6,1,0,0,22], 'check_out': ['CHECKED;OUT',18,2,45,0,22], 'FALSE': ['NOT;AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut;Down',40,1,0,0,24], '1': ['1',50,1,0,0,50], '2': ['2',50,1,0,0,50], 'Wifi1': ['Connect to AP;RFID Attendance System',30,2,5,0,12], 'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration',15,2,5,0,12] , 'Wifi3': ['Connect;to;192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi;Connection',35,2,15,15,20], 'update': ['Resetting;to;update',20,3,55,35,24], 'config1': ['Connect to;' + get_ip() + ':3000',35,3,55,5,15]}
+dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo;communication;failed',3,41,5,40,'Check;the;parameters',3,41,53,20,19], 'error2': [2,'RFID;intrigrity;failed',3,50,20,35,'Pass;the;card',3,48,45,48,20]}
 
 dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config1': ['Entra en '+get_ip()+' puerto: 3000',18,3,55,15,20]}
 dicerror_es = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Error de comunicacion',3,47,54,15,'Chequea los parametros',3,28,50,20,19], 'error2': [2,'Integridad RFID fallida',3,20,50,35,'Pasa la tarjeta',3,44,55,34,20]}
@@ -314,11 +314,11 @@ def screen_drawing(device,info):
                         if dicerror[lang][info][2+(i*5)] == 1:
                             draw.text((dicerror[lang][info][3+(i*5)], 20), dicerror[lang][info][1+(i*5)], font=font2, fill="white")
                         elif dicerror[lang][info][2+(i*5)] == 2:
-                            a, b = dicerror[lang][info][1+(i*5)].split(" ")
+                            a, b = dicerror[lang][info][1+(i*5)].split(";")
                             draw.text((dicerror[lang][info][3+(i*5)], 10), a, font=font2, fill="white")
                             draw.text((dicerror[lang][info][4+(i*5)], 45), b, font=font2, fill="white")
                         else:
-                            a, b, c = dicerror[lang][info][1+(i*5)].split(" ")
+                            a, b, c = dicerror[lang][info][1+(i*5)].split(";")
                             draw.text((dicerror[lang][info][3+(i*5)], 4), a, font=font2, fill="white")
                             draw.text((dicerror[lang][info][4+(i*5)], 23), b, font=font2, fill="white")
                             draw.text((dicerror[lang][info][5+(i*5)], 42), c, font=font2, fill="white")
