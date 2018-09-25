@@ -6,6 +6,7 @@ import json
 import binascii
 import random
 import os, sys, time
+import threading
 
 try:
     import httplib
@@ -46,6 +47,7 @@ reset = False
 on_Down = False
 on_OK = False
 update = False
+ap_mode = False
 
 global PBuzzer
 PinSignalBuzzer = 13    # Pin to feed the Signal to the Buzzer - Signal Pin
@@ -100,7 +102,7 @@ def get_ip():
         s.close()
     return IP
 
-dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED;IN',6,1,0,0,22], 'check_out': ['CHECKED;OUT',18,2,45,0,22], 'FALSE': ['NOT;AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut;Down',40,1,0,0,24], '1': ['1',50,1,0,0,50], '2': ['2',50,1,0,0,50], 'Wifi1': ['Connect to AP;RFID Attendance System',30,2,5,0,12], 'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration',15,2,5,0,12] , 'Wifi3': ['Connect;to;192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi;Connection',35,2,15,15,20], 'update': ['Resetting;to;update',20,3,55,35,24], 'config1': ['Connect to;' + get_ip() + ':3000',35,3,55,5,15]}
+dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED;IN',6,1,0,0,22], 'check_out': ['CHECKED;OUT',18,2,45,0,22], 'FALSE': ['NOT;AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',5,1,0,0,24], '1': ['1',50,1,0,0,50], '2': ['2',50,1,0,0,50], 'Wifi1': ['Connect to AP;RFID Attendance System',30,2,10,0,12], 'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration',20,2,10,0,12] , 'Wifi3': ['Connect;to;192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi;Connection',35,2,15,0,20], 'update': ['Resetting;to;update',20,3,55,35,24], 'config1': ['Connect to;' + get_ip() + ':3000',35,3,25,0,15]}
 dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo;communication;failed',3,41,5,40,'Check;the;parameters',3,41,53,20,19], 'error2': [2,'RFID;intrigrity;failed',3,50,20,35,'Pass;the;card',3,48,45,48,20]}
 
 dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config1': ['Entra en '+get_ip()+' puerto: 3000',18,3,55,15,20]}
@@ -114,10 +116,37 @@ tz_dic = {'-12:00': "Pacific/Kwajalein",  '-11:00': "Pacific/Samoa",'-10:00': "U
 # Create an object of the class MFRC522
 MIFAREReader = MFRC522.MFRC522()
 
-def configure_ap_mode():
-    _logger.debug("Starting Wifi Connect")
-    screen_drawing(device,"Wifi4")
+def print_wifi_config():
+    global ap_mode
+    while ap_mode:
+        screen_drawing(device,"Wifi4")
+        time.sleep(4)
+        screen_drawing(device, "1")
+        time.sleep(1)
+        screen_drawing(device, "Wifi1")
+        time.sleep(3)
+        screen_drawing(device, "2")
+        time.sleep(1)
+        screen_drawing(device, "Wifi2")
+        time.sleep(3)
+
+def launch_ap_mode():
+    global ap_mode
     reset_lib.reset_to_host_mode()
+    ap_mode = False
+    
+
+def configure_ap_mode():
+    global ap_mode
+    ap_mode = True
+    _logger.debug("Starting Wifi Connect")
+    try:
+       Thread1 = threading.Thread(target=print_wifi_config)
+       Thread1.start()
+       Thread2 = threading.Thread(target=launch_ap_mode)
+       Thread2.start()
+    except:
+        print("Error: unable to start thread")
 
 def have_internet():
     _logger.debug("check internet connection")
@@ -357,11 +386,11 @@ def screen_drawing(device,info):
                     if dic[lang][info][2] == 1:
                         draw.text((dic[lang][info][1], 22+(24-dic[lang][info][5])/2), dic[lang][info][0], font=font2, fill="white")
                     elif dic[lang][info][2] == 2:
-                        a, b = dic[lang][info][0].split(" ")
+                        a, b = dic[lang][info][0].split(";")
                         draw.text((dic[lang][info][1], 10+(24-dic[lang][info][5])/2), a, font=font2, fill="white")
                         draw.text((dic[lang][info][3], 37+(24-dic[lang][info][5])/2), b, font=font2, fill="white")
                     else:
-                        a, b, c = dic[lang][info][0].split(" ")
+                        a, b, c = dic[lang][info][0].split(";")
                         draw.text((dic[lang][info][1], 2+(24-dic[lang][info][5])/2), a, font=font2, fill="white")
                         draw.text((dic[lang][info][3], 22+(24-dic[lang][info][5])/2), b, font=font2, fill="white")
                         draw.text((dic[lang][info][4], 37+(24-dic[lang][info][5])/2), c, font=font2, fill="white")
@@ -629,12 +658,12 @@ def main():
                 _logger.debug("on_OK: " + str(on_OK))
 
     else:
-        screen_drawing(device,"Wifi1")
-        time.sleep(3)
-        screen_drawing(device,"Wifi2")
-        time.sleep(3)
-        screen_drawing(device,"Wifi3")
-        time.sleep(2)
+        # screen_drawing(device,"Wifi1")
+        # time.sleep(3)
+        # screen_drawing(device,"Wifi2")
+        # time.sleep(3)
+        # screen_drawing(device,"Wifi3")
+        # time.sleep(2)
         if not reset_lib.is_wifi_active():
             configure_ap_mode()
             main()
@@ -679,13 +708,14 @@ def m_functionality():
             time.sleep(2)
             screen_drawing(device," ")
             GPIO.cleanup()
+        if reset == True:
+            reset = False
+            configure_ap_mode()
+            main()
         screen_drawing(device,"Bye!")
         time.sleep(3)
         screen_drawing(device," ")
         GPIO.cleanup()
-        if reset == True:
-            reset = False
-            configure_ap_mode()
         return update
 
     except KeyboardInterrupt:
