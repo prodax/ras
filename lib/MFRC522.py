@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf8 -*-
-#
+
 #    Copyright 2014,2018 Mario Gomez <mario.gomez@teubi.co>
 #
 #    This file is part of MFRC522-Python
@@ -19,8 +17,6 @@
 #
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with MFRC522-Python.  If not, see <http://www.gnu.org/licenses/>.
-#
-
 
 try:
     import RPi.GPIO as GPIO

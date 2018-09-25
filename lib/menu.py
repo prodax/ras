@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import xmlrpc.client as xmlrpclib
 import socket
 import json
@@ -102,7 +100,7 @@ def get_ip():
         s.close()
     return IP
 
-dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED;IN',6,1,0,0,22], 'check_out': ['CHECKED;OUT',18,2,45,0,22], 'FALSE': ['NOT;AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',5,1,0,0,24], '1': ['1',50,1,0,0,50], '2': ['2',50,1,0,0,50], 'Wifi1': ['Connect to AP;RFID Attendance System',30,2,10,0,12], 'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration',20,2,10,0,12] , 'Wifi3': ['Connect;to;192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi;Connection',35,2,15,0,20], 'update': ['Resetting;to;update',20,3,55,35,24], 'config1': ['Connect to;' + get_ip() + ':3000',35,3,25,0,15]}
+dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',5,1,0,0,24], '1': ['1',50,1,0,0,50], '2': ['2',50,1,0,0,50], 'Wifi1': ['Connect to AP;RFID Attendance System',30,2,10,0,12], 'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration',20,2,10,0,12] , 'Wifi3': ['Connect;to;192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi;Connection',35,2,15,0,20], 'update': ['Resetting;to;update',20,3,55,35,24], 'config1': ['Connect to;' + get_ip() + ':3000',35,3,25,0,15]}
 dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo;communication;failed',3,41,5,40,'Check;the;parameters',3,41,53,20,19], 'error2': [2,'RFID;intrigrity;failed',3,50,20,35,'Pass;the;card',3,48,45,48,20]}
 
 dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config1': ['Entra en '+get_ip()+' puerto: 3000',18,3,55,15,20]}
@@ -264,7 +262,7 @@ def connection(host, port, user, user_pw, database):
     user_password = user_pw
     global db_name, https_on
     dbname = database
-    _logger.debug("CONNEC 1")
+    _logger.debug("Validating Connection to Odoo via XMLRPC")
     if https_on: #port in ['443', '80', '']:
         url_template = "https://%s/xmlrpc/%s"
         login_facade = xmlrpclib.ServerProxy(url_template % (
@@ -274,11 +272,9 @@ def connection(host, port, user, user_pw, database):
         _logger.debug("URL: %s", url_template % (host, port, 'common'))
         login_facade = xmlrpclib.ServerProxy(url_template % (
             host, port, 'common'))
-    _logger.debug("CONNEC 2")
     global user_id
     user_id = login_facade.login(database, user, user_pw)
     _logger.debug("USER: %s", user_id)
-    _logger.debug("CONNEC 3")
     global object_facade
     if https_on: #port in ['443', '80', '']:
         object_facade = xmlrpclib.ServerProxy(url_template % (
@@ -286,8 +282,7 @@ def connection(host, port, user, user_pw, database):
     else:
          object_facade = xmlrpclib.ServerProxy(url_template % (
             host, port, 'object'))
-    _logger.debug("object_facade: %s", object_facade)
-    _logger.debug("CONNEC 4")
+    _logger.debug("object_facade: %s", str(object_facade))
 
 
 def menu(device,msg1,msg2,msg3,msg4,loc):
@@ -598,8 +593,8 @@ def main():
                 while reset == False and adm == False and turn_off == False and update == False:
                     try:
                         elapsed_time = time.time() - start_time
-
                         if pos == 0:
+                            _logger.debug("Reading data.json")
                             while not os.path.isfile("/home/pi/ras/dicts/data.json"):
                                 screen_drawing(device,"config1")
                                 time.sleep(4)
@@ -626,6 +621,7 @@ def main():
                                 else:
                                     update = True
                                     _logger.debug("THIS IS UPDATE: " + str(update))
+                                reset_lib.test_connection(host, port, user_name, user_password, dbname)
                             else:
                                 raise ValueError("It is not a file!")
                         else:
