@@ -255,7 +255,7 @@ def scan_card(MIFAREReader,odoo):
             #msg = "error2"
             #error = True
     else:
-        _logger.debug("HERE")
+        _logger.debug("Scan Card loop")
         error = False
 
 
