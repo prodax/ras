@@ -66,26 +66,24 @@ except:
 def inputStateDown(channel):
     global on_Down
     if on_Down == False:
-        _logger.debug('3.3')
+        _logger.debug('Down Pressed')
         on_Down = True
     else:
-        _logger.debug('0')
         on_Down = False
 
 def inputStateOK(channel):
     global on_OK
     if on_OK == False:
-        _logger.debug('3.3')
+        _logger.debug('OK Pressed')
         on_OK = True
     else:
-        _logger.debug('0')
         on_OK = False
 
 try:
     GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown, bouncetime=200)
     GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK, bouncetime=200)
 except:
-    _logger.debug("Avoid GPIO add_event_detect")
+    _logger.debug("GPIOs related with buttons are not working")
 
 
 def get_ip():
