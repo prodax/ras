@@ -137,10 +137,12 @@ def launch_ap_mode():
     _logger.debug("AP Mode Finished")
     ap_mode = False
     
+    
 
 def configure_ap_mode():
-    global ap_mode
+    global ap_mode, adm
     ap_mode = True
+    adm = True
     _logger.debug("Starting Wifi Connect")
     try:
        Thread1 = threading.Thread(target=print_wifi_config)
