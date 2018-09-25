@@ -119,6 +119,7 @@ MIFAREReader = MFRC522.MFRC522()
 def print_wifi_config():
     global ap_mode
     while ap_mode:
+        _logger.debug("Display AP connection instructions")
         screen_drawing(device,"Wifi4")
         time.sleep(4)
         screen_drawing(device, "1")
@@ -133,6 +134,7 @@ def print_wifi_config():
 def launch_ap_mode():
     global ap_mode
     reset_lib.reset_to_host_mode()
+    _logger.debug("AP Mode Finished")
     ap_mode = False
     
 
@@ -142,11 +144,15 @@ def configure_ap_mode():
     _logger.debug("Starting Wifi Connect")
     try:
        Thread1 = threading.Thread(target=print_wifi_config)
-       Thread1.start()
        Thread2 = threading.Thread(target=launch_ap_mode)
-       Thread2.start()
     except:
         print("Error: unable to start thread")
+    finally:
+        Thread1.start()
+        Thread2.start()
+    while ap_mode:
+        pass
+    _logger.debug("Leaving configure_ap_mode")
 
 def have_internet():
     _logger.debug("check internet connection")
