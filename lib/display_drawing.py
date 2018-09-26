@@ -24,7 +24,7 @@ dic = {
     'Wifi3': ['Connect;to;192.168.42.1', 20, 3, 50, 1, 24],
     'Wifi4': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
     'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
-    'config1': ['Connect to;' + get_ip() + ':3000', 35, 3, 25, 0, 15]
+    'config1': ['Connect to;' + get_ip() + ':3000', 35, 2, 25, 0, 15]
 }
 dicerror = {
     ' ': [1, " ", 1, 0, 0, 0, 24],
