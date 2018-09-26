@@ -317,23 +317,26 @@ def print_update_repo():
         time.sleep(4)
 
 def update_firmware():
-    global updating
-    _logger.debug("Updating repository")
-    updating = True
-    try:
-        Thread3 = threading.Thread(target=print_update_repo)
-        Thread4 = threading.Thread(target=updating_repo)
-    except:
-        print("Error: unable to start thread")
-    finally:
-        Thread3.start()
-        Thread4.start()
-    while updating:
-        pass
-    _logger.debug("Leaving update_firmware and rebooting")
-    screen_drawing(device, "shut_down")
-    time.sleep(4)
-    reboot()
+    if have_internet():
+        global updating
+        _logger.debug("Updating repository")
+        updating = True
+        try:
+            Thread3 = threading.Thread(target=print_update_repo)
+            Thread4 = threading.Thread(target=updating_repo)
+        except:
+            print("Error: unable to start thread")
+        finally:
+            Thread3.start()
+            Thread4.start()
+        while updating:
+            pass
+        _logger.debug("Leaving update_firmware and rebooting")
+        screen_drawing(device, "shut_down")
+        time.sleep(4)
+        reboot()
+    else:
+        back()
 
 
 
@@ -390,7 +393,7 @@ def main():
                     except KeyboardInterrupt:
                         break
                 else:
-                    menu(device, "WiFi Reset", "Update Firmware", "Back",
+                    menu(device, "WiFi Reset", "Update RAS", "Back",
                          "", pos2)
                     try:
                         # Check if the OK button is pressed
