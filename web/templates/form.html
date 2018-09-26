@@ -15,19 +15,19 @@
     <fieldset>
       <legend><span class="number">1</span>{{ _('Odoo Parameters') }}</legend>
       <label for="name">{{ _('Odoo Host:') }}</label>
-      <input type="text" id="odoo_host" name="odoo_host" value="{{ data['odoo_host'] }}">
+      <input type="text" id="odoo_host" name="odoo_host" value="{{ data['odoo_host'][0] }}">
       <label for="name">{{ _('Port:') }}</label>
-      <input type="text" id="odoo_port" name="odoo_port" value="{{ data['odoo_port'] }}">
+      <input type="text" id="odoo_port" name="odoo_port" value="{{ data['odoo_port'][0] }}">
       <label for="user">{{ _('Username:') }}</label>
-      <input type="text" id="user" name="user_name" value="{{ data['user_name'] }}">
+      <input type="text" id="user" name="user_name" value="{{ data['user_name'][0] }}">
       <label for="password">{{ _('Password:') }}</label>
-      <input type="password" id="password" name="user_password" value="{{ data['user_password'] }}">
+      <input type="password" id="password" name="user_password" value="{{ data['user_password'][0] }}">
       <label for="db">{{ _('Database:') }}</label>
-      <input type="text" id="db" name="db" value="{{ data['db'] }}">
+      <input type="text" id="db" name="db" value="{{ data['db'][0] }}">
       <label for="admin_id">Admin ID:</label>
-      <input type="text" id="admin_id" name="admin_id" value="{{ data['admin_id'] }}" placeholder="RFID 8-digit hex e.g. FFFFFFFF">
+      <input type="text" id="admin_id" name="admin_id" value="{{ data['admin_id'][0] }}" placeholder="RFID 8-digit hex e.g. FFFFFFFF">
       <label for="timezone">{{ _('Country:') }}</label>
-      <select name="timezone" form="testform" value="{{ data['timezone'] }}">
+      <select name="timezone" form="testform" value="{{ data['timezone'][0] }}">
         <option value="-12:00">(GMT -12:00) Eniwetok, Kwajalein</option>
         <option value="-11:00">(GMT -11:00) Midway Island, Samoa</option>
         <option value="-10:00">(GMT -10:00) Hawaii</option>
