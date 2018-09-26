@@ -15,16 +15,6 @@ def get_locale():
     # header the browser transmits.  We support de/fr/en in this
     # example.  The best match wins.
 
-    json_file = open('/home/pi/ras/dicts/idiom.json')
-    json_data = json.load(json_file)
-    json_file.close()
-
-    #return request.accept_languages.best_match(['es','en'])
-    if json_data['language'][0] == "e":
-        return json_data['language']
-    else:
-        return json_data['language'][0]
-
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -70,16 +60,6 @@ def do_admin_login():
             session['logged_in'] = True
         else:
             flash('wrong password!')
-        return form()
-    elif request.form.get('Change language') == 'Change language':
-        result = request.form
-        dic = result.to_dict(flat=False)
-        json_file = open('/home/pi/ras/dicts/idiom.json')
-        json_data = json.load(json_file)
-        json_file.close()
-        print(json_data['language'][0])
-        with open('/home/pi/ras/dicts/idiom.json', 'w+') as outfile:
-              json.dump(dic,outfile)
         return form()
     else:
         return form()
