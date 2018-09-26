@@ -310,6 +310,7 @@ def updating_repo():
     updating = False
 
 def print_update_repo():
+    global updating
     while updating:
         _logger.debug("Display updating firmware")
         screen_drawing(device, "update")
@@ -321,7 +322,7 @@ def update_firmware():
     updating = True
     try:
         Thread3 = threading.Thread(target=print_update_repo)
-        Thread4 = threading.Thread(target=update_repo)
+        Thread4 = threading.Thread(target=updating_repo)
     except:
         print("Error: unable to start thread")
     finally:
