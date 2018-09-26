@@ -1,8 +1,5 @@
-import socket
 import json
-import binascii
-import random
-import os, sys, time
+import os, time
 import threading
 
 try:
@@ -15,18 +12,13 @@ try:
 except:
     import RPiSim as GPIO
 
-from luma.core.render import canvas
-from PIL import ImageFont
-from PIL import Image
-from datetime import datetime
-from urllib.parse import urlparse as urlparse
-
 from .demo_opts import get_device
 from . import MFRC522
 from .reset_lib import is_wifi_active, reset_to_host_mode, update_repo, reboot
 from . import PasBuz
 from . import odoo_xmlrpc
-from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg
+from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg,\
+    welcome_logo
 
 import logging
 
@@ -236,6 +228,8 @@ def scan_card(MIFAREReader, odoo):
                 _logger.debug("##################################"
                               "###############################################")
                 try:
+                    user_id = odoo_xmlrpc.authenticate_connection(host, port, user_name,
+                        user_password, dbname, https_on)
                     object_facade = odoo_xmlrpc.connection(host, port, https_on)
                     res = object_facade.execute(
                         dbname, user_id, user_password, "hr.employee",
@@ -483,17 +477,8 @@ def m_functionality():
     _logger.debug("m_functionality() call")
     try:
         device = get_device()
-        img_path = os.path.abspath(os.path.join(
-            '/home/pi/ras/images', 'eficent.png'))
-        logo = Image.open(img_path).convert("RGBA")
-        fff = Image.new(logo.mode, logo.size, (0,) * 4)
-
-        background = Image.new("RGBA", device.size, "black")
-        posn = ((device.width - logo.width) // 2, 0)
-
-        img = Image.composite(logo, fff, logo)
-        background.paste(img, posn)
-        device.display(background.convert(device.mode))
+        welcome_logo(device)
+        time.sleep(4)
         welcome_msg(device, 17)
         time.sleep(4)
         main()

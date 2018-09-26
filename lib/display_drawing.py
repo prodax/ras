@@ -3,6 +3,8 @@ import time
 
 from luma.core.render import canvas
 from PIL import ImageFont
+from PIL import Image
+
 from .reset_lib import get_ip
 
 import logging
@@ -13,7 +15,7 @@ dic = {' ': [" ", 0, 1, 0, 0, 24],
           'check_in': ['CHECKED IN', 6, 1, 0, 0, 22],
           'check_out': ['CHECKED OUT', 18, 2, 45, 0, 22],
           'FALSE': ['NOT AUTHORIZED', 45, 2, 8, 0, 20],
-          'shut_down': ['Shuting Down', 5, 1, 0, 0, 24], 
+          'shut_down': ['Rebooting', 5, 1, 0, 0, 24], 
           '1': ['1', 50, 1, 0, 0, 50],
           '2': ['2', 50, 1, 0, 0, 50],
           'Wifi1': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
@@ -176,21 +178,6 @@ def card_drawing(device, id):
         except:
             draw.text((15, 20), id, font=font2, fill="white")
 
-
-def double_msg(device, msg1, msg2, size):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-        '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, size - 2)
-
-    with canvas(device) as draw:
-        # draw.rectangle(device.bounding_box, outline="white")
-        draw.text((10, 18), msg1, font=font2, fill="white")
-        draw.text((10, 30), msg2, font=font2, fill="white")
-
-    time.sleep(2)
-
-
 def welcome_msg(device, size):
     # use custom font
     font_path = os.path.abspath(os.path.join(
@@ -201,4 +188,18 @@ def welcome_msg(device, size):
         draw.text((15, 10), "Welcome to the", font=font2, fill="white")
         draw.text((50, 28), "RFID", font=font2, fill="white")
         draw.text((1, 43), "Attendance system", font=font2, fill="white")
+    time.sleep(0.5)
+
+def welcome_logo(device):
+    img_path = os.path.abspath(os.path.join(
+            '/home/pi/ras/images', 'eficent.png'))
+    logo = Image.open(img_path).convert("RGBA")
+    fff = Image.new(logo.mode, logo.size, (0,) * 4)
+
+    background = Image.new("RGBA", device.size, "black")
+    posn = ((device.width - logo.width) // 2, 0)
+
+    img = Image.composite(logo, fff, logo)
+    background.paste(img, posn)
+    device.display(background.convert(device.mode))
     time.sleep(0.5)

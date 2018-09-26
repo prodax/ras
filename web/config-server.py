@@ -32,7 +32,14 @@ def form():
     if not session.get('logged_in'):
         return render_template('login.html')
     else:
-        return render_template('form.html', IP=str(get_ip()), port=3000)
+        if os.path.isfile("/home/pi/ras/dicts/data.json"):
+            json_file = open('/home/pi/ras/dicts/data.json')
+            json_data = json.load(json_file)
+            json_file.close()
+            return render_template('form.html', IP=str(get_ip()), port=3000,
+                data = json_data)
+        else:
+            return render_template('form.html', IP=str(get_ip()), port=3000)
 
 @app.route('/result',methods = ['POST', 'GET'])
 def result():
