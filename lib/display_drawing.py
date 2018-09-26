@@ -3,6 +3,8 @@ import time
 
 from luma.core.render import canvas
 from PIL import ImageFont
+from PIL import Image
+
 from .reset_lib import get_ip
 
 import logging

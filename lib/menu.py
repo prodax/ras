@@ -1,8 +1,5 @@
-import socket
 import json
-import binascii
-import random
-import os, sys, time
+import os, time
 import threading
 
 try:
@@ -15,18 +12,13 @@ try:
 except:
     import RPiSim as GPIO
 
-from luma.core.render import canvas
-from PIL import ImageFont
-from PIL import Image
-from datetime import datetime
-from urllib.parse import urlparse as urlparse
-
 from .demo_opts import get_device
 from . import MFRC522
 from .reset_lib import is_wifi_active, reset_to_host_mode, update_repo, reboot
 from . import PasBuz
 from . import odoo_xmlrpc
-from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg, welcome_logo
+from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg,\
+    welcome_logo
 
 import logging
 
