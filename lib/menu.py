@@ -23,7 +23,7 @@ from urllib.parse import urlparse as urlparse
 
 from .demo_opts import get_device
 from . import MFRC522
-from . import reset_lib
+from .reset_lib import is_wifi_active, reset_to_host_mode, update_repo
 from . import PasBuz
 from . import odoo_xmlrpc
 from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg
@@ -137,7 +137,7 @@ def print_wifi_config():
 
 def launch_ap_mode():
     global ap_mode
-    reset_lib.reset_to_host_mode()
+    reset_to_host_mode()
     _logger.debug("AP Mode Finished")
     ap_mode = False
 
@@ -454,7 +454,7 @@ def main():
                 _logger.debug("on_OK: " + str(on_OK))
 
     else:
-        if not reset_lib.is_wifi_active():
+        if not is_wifi_active():
             configure_ap_mode()
             main()
 
