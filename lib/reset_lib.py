@@ -28,10 +28,13 @@ def reset_to_host_mode():
 
 
 def update_repo():
-	print("Print update")
-    os.system('cd /home/pi/ras && \
-    sudo git fetch origin master && \
-    sudo git reset --hard origin/master')
+	print("cd /home/pi/ras")
+	os.system('cd /home/pi/ras')
+	print("sudo git fetch origin master")
+	os.system("sudo git fetch origin master")
+	print('sudo git reset --hard origin/master')
+	os.system('sudo git reset --hard origin/master')
 
 def reboot():
+	print("rebooting")
 	os.system('sudo reboot')
