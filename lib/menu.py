@@ -378,9 +378,6 @@ def main():
                             on_Down_old = on_Down
                     except KeyboardInterrupt:
                         break
-                json_file = open('/home/pi/ras/dicts/idiom.json')
-                json_data = json.load(json_file)
-                json_file.close()
             # CHOSEN FUNCTIONALITY
             if enter:
                 enter = False
@@ -444,9 +441,6 @@ def main():
                                 update = True
                         if adm:
                             _logger.debug(str(adm))
-                        json_file = open('/home/pi/ras/dicts/idiom.json')
-                        json_data = json.load(json_file)
-                        json_file.close()
                     except KeyboardInterrupt:
                         break
                 pos = 0
