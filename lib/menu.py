@@ -619,7 +619,6 @@ def main():
                                 else:
                                     update = True
                                     _logger.debug("THIS IS UPDATE: " + str(update))
-                                reset_lib.test_connection(host, port, user_name, user_password, dbname)
                             else:
                                 raise ValueError("It is not a file!")
                         else:
