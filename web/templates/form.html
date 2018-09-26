@@ -130,11 +130,15 @@
         <option value="+14:00">(GMT +14:00) Line Islands, Tokelau</option>
       </select>
       <label for="https">{{ _('Click the checkbox if your Odoo employs HTTPS:') }} </label>
-      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https"></label><br>
+      {%if data['https'][0] == 'https' %}
+      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https" checked></label><br>
+      {%else%}
+      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https" ></label><br>
+      {%endif%}
     </fieldset>
     {% endif %}
     <fieldset>
-      <legend><span class="number">3</span>{{ _('Go!') }}</legend>
+      <legend><span class="number">2</span>{{ _('Go!') }}</legend>
       <button type="submit">{{ _('Configure!') }}</button>
       <button type="reset">{{ _('Reset parameters') }} </button>
     </fieldset>
