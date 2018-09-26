@@ -306,12 +306,12 @@ def settings():
 def updating_repo():
     global updating
     update_repo()
-    _logger.debug("AP Mode Finished")
+    _logger.debug("Update finished")
     updating = False
 
 def print_update_repo():
     while updating:
-        _logger.debug("Display AP connection instructions")
+        _logger.debug("Display updating firmware")
         screen_drawing(device, "update")
         time.sleep(4)
 
