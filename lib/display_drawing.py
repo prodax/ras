@@ -9,7 +9,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-dic_en = {' ': [" ", 0, 1, 0, 0, 24],
+dic = {' ': [" ", 0, 1, 0, 0, 24],
           'check_in': ['CHECKED IN', 6, 1, 0, 0, 22],
           'check_out': ['CHECKED OUT', 18, 2, 45, 0, 22],
           'FALSE': ['NOT AUTHORIZED', 45, 2, 8, 0, 20],
@@ -21,31 +21,11 @@ dic_en = {' ': [" ", 0, 1, 0, 0, 24],
           'Wifi4': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
           'update': ['Resetting;to;update', 20, 3, 55, 35, 24],
           'config1': ['Connect to;' + get_ip() + ':3000', 35, 3, 25, 0, 15]}
-dicerror_en = {' ': [1, " ", 1, 0, 0, 0, 24],
+dicerror = {' ': [1, " ", 1, 0, 0, 0, 24],
                'error1': [2, 'Odoo;communication;failed', 3, 41, 5, 40,
                           'Check;the;parameters', 3, 41, 53, 20, 19],
                'error2': [2, 'RFID;intrigrity;failed', 3, 50, 20, 35,
                           'Pass;the;card', 3, 48, 45, 48, 20]}
-
-dic_es = {' ': [" ", 0, 1, 0, 0, 24],
-          'check_in': ['ENTRADA REGISTRADA', 20, 2, 3, 0, 22],
-          'check_out': ['SALIDA REGISTRADA', 30, 2, 3, 0, 22],
-          'FALSE': ['NO AUTORIZADO', 53, 2, 5, 0, 20],
-          'Bye!': ['HASTA LUEGO', 25, 2, 25, 0, 24],
-          'Wifi1': ['Configuracion WiFi', 7, 2, 35, 0, 24],
-          'Wifi2': ['Entra en 10.0.0.1:9191', 30, 3, 50, 1, 24],
-          'Wifi3': ['usando RaspiWifi setup', 35, 3, 20, 37, 24],
-          'update': ['Reseteando para actualizar', 13, 3, 55, 20, 24],
-          'config1': ['Entra en ' + get_ip() + ' puerto: 3000', 18, 3, 55, 15,
-                      20]}
-dicerror_es = {' ': [1, " ", 1, 0, 0, 0, 24],
-               'error1': [2, 'Error de comunicacion', 3, 47, 54, 15,
-                          'Chequea los parametros', 3, 28, 50, 20, 19],
-               'error2': [2, 'Integridad RFID fallida', 3, 20, 50, 35,
-                          'Pasa la tarjeta', 3, 44, 55, 34, 20]}
-
-dic = {'es': dic_es, 'en': dic_en}
-dicerror = {'es': dicerror_es, 'en': dicerror_en}
 
 
 def menu(device, msg1, msg2, msg3, msg4, loc):
@@ -89,38 +69,38 @@ def screen_drawing(device, info):
         _logger.debug("ERROR: " + str(error))
         _logger.debug(info)
         code = info.replace('error', '')
-        font2 = ImageFont.truetype(font_path, dicerror[lang][info][11] - 3)
+        font2 = ImageFont.truetype(font_path, dicerror[info][11] - 3)
         fonte = ImageFont.truetype(font_path, 28)
         with canvas(device) as draw:
             # draw.rectangle(device.bounding_box, outline="white")
             draw.text((17, 5), "ERROR", font=fonte, fill="white")
             draw.text((14, 37), "CODE " + code, font=fonte, fill="white")
         time.sleep(2)
-        _logger.debug(str(dicerror[lang][info][0]))
-        for i in range(0, dicerror[lang][info][0] + 1):
+        _logger.debug(str(dicerror[info][0]))
+        for i in range(0, dicerror[info][0] + 1):
             _logger.debug("FOR: " + str(i))
             with canvas(device) as draw:
                 # draw.rectangle(device.bounding_box, outline="white")
                 try:
-                    if dicerror[lang][info][0] != i:
-                        if dicerror[lang][info][2 + (i * 5)] == 1:
-                            draw.text((dicerror[lang][info][3 + (i * 5)], 20),
-                                      dicerror[lang][info][1 + (i * 5)],
+                    if dicerror[info][0] != i:
+                        if dicerror[info][2 + (i * 5)] == 1:
+                            draw.text((dicerror[info][3 + (i * 5)], 20),
+                                      dicerror[info][1 + (i * 5)],
                                       font=font2, fill="white")
-                        elif dicerror[lang][info][2 + (i * 5)] == 2:
-                            a, b = dicerror[lang][info][1 + (i * 5)].split(";")
-                            draw.text((dicerror[lang][info][3 + (i * 5)], 10),
+                        elif dicerror[info][2 + (i * 5)] == 2:
+                            a, b = dicerror[info][1 + (i * 5)].split(";")
+                            draw.text((dicerror[info][3 + (i * 5)], 10),
                                       a, font=font2, fill="white")
-                            draw.text((dicerror[lang][info][4 + (i * 5)], 45),
+                            draw.text((dicerror[info][4 + (i * 5)], 45),
                                       b, font=font2, fill="white")
                         else:
-                            a, b, c = dicerror[lang][info][1 + (i * 5)].split(
+                            a, b, c = dicerror[info][1 + (i * 5)].split(
                                 ";")
-                            draw.text((dicerror[lang][info][3 + (i * 5)], 4), a,
+                            draw.text((dicerror[info][3 + (i * 5)], 4), a,
                                       font=font2, fill="white")
-                            draw.text((dicerror[lang][info][4 + (i * 5)], 23),
+                            draw.text((dicerror[info][4 + (i * 5)], 23),
                                       b, font=font2, fill="white")
-                            draw.text((dicerror[lang][info][5 + (i * 5)], 42),
+                            draw.text((dicerror[info][5 + (i * 5)], 42),
                                       c, font=font2, fill="white")
                     _logger.debug("1")
                     time.sleep(2)
@@ -131,7 +111,7 @@ def screen_drawing(device, info):
         msg = "time"
     else:
         if info != "time":
-            font2 = ImageFont.truetype(font_path, dic[lang][info][5] - 2)
+            font2 = ImageFont.truetype(font_path, dic[info][5] - 2)
         else:
             font2 = ImageFont.truetype(font_path, 30)
         with canvas(device) as draw:
@@ -156,28 +136,28 @@ def screen_drawing(device, info):
                                           fill="white")
             else:
                 try:
-                    if dic[lang][info][2] == 1:
-                        draw.text((dic[lang][info][1],
-                                   22 + (24 - dic[lang][info][5]) / 2),
-                                  dic[lang][info][0], font=font2, fill="white")
-                    elif dic[lang][info][2] == 2:
-                        a, b = dic[lang][info][0].split(";")
-                        draw.text((dic[lang][info][1],
-                                   10 + (24 - dic[lang][info][5]) / 2), a,
+                    if dic[info][2] == 1:
+                        draw.text((dic[info][1],
+                                   22 + (24 - dic[info][5]) / 2),
+                                  dic[info][0], font=font2, fill="white")
+                    elif dic[info][2] == 2:
+                        a, b = dic[info][0].split(";")
+                        draw.text((dic[info][1],
+                                   10 + (24 - dic[info][5]) / 2), a,
                                   font=font2, fill="white")
-                        draw.text((dic[lang][info][3],
-                                   37 + (24 - dic[lang][info][5]) / 2), b,
+                        draw.text((dic[info][3],
+                                   37 + (24 - dic[info][5]) / 2), b,
                                   font=font2, fill="white")
                     else:
-                        a, b, c = dic[lang][info][0].split(";")
-                        draw.text((dic[lang][info][1],
-                                   2 + (24 - dic[lang][info][5]) / 2), a,
+                        a, b, c = dic[info][0].split(";")
+                        draw.text((dic[info][1],
+                                   2 + (24 - dic[info][5]) / 2), a,
                                   font=font2, fill="white")
-                        draw.text((dic[lang][info][3],
-                                   22 + (24 - dic[lang][info][5]) / 2), b,
+                        draw.text((dic[info][3],
+                                   22 + (24 - dic[info][5]) / 2), b,
                                   font=font2, fill="white")
-                        draw.text((dic[lang][info][4],
-                                   37 + (24 - dic[lang][info][5]) / 2), c,
+                        draw.text((dic[info][4],
+                                   37 + (24 - dic[info][5]) / 2), c,
                                   font=font2, fill="white")
                 except:
                     draw.text((20, 20), info, font=font2, fill="white")
