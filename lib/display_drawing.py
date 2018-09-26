@@ -65,8 +65,7 @@ def screen_drawing(device, info):
     global error, msg
     font_path = os.path.abspath(os.path.join(
         '/home/pi/ras/fonts', 'Orkney.ttf'))
-    if error:
-        _logger.debug("ERROR: " + str(error))
+    if 'error' in info:
         _logger.debug(info)
         code = info.replace('error', '')
         font2 = ImageFont.truetype(font_path, dicerror[info][11] - 3)
