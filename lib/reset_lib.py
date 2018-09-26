@@ -31,3 +31,6 @@ def update_repo():
     os.system('cd /home/pi/ras && \
     sudo git fetch origin master && \
     sudo git reset --hard origin/master')
+
+def reboot():
+	os.system('sudo reboot')
