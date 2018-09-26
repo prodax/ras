@@ -1,4 +1,3 @@
-import xmlrpc.client as xmlrpclib
 import socket
 import json
 import binascii
@@ -26,10 +25,12 @@ from .demo_opts import get_device
 from . import MFRC522
 from . import reset_lib
 from . import PasBuz
+from . import odoo_xmlrpc
+from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg
 
 import logging
-_logger = logging.getLogger(__name__)
 
+_logger = logging.getLogger(__name__)
 
 error = False
 card_found = False
@@ -38,7 +39,7 @@ cnt_found = 0
 admin_id = "FFFFFFFF"
 turn_off = False
 adm = True
-elapsed_time=0.0
+elapsed_time = 0.0
 pos = 0
 enter = False
 reset = False
@@ -47,20 +48,42 @@ on_OK = False
 update = False
 ap_mode = False
 
+tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
+          '-10:00': "US/Hawaii", '-09:50': "Pacific/Marquesas",
+          '-09:00': "US/Alaska", '-08:00': "Etc/GMT-8", '-07:00': "Etc/GMT-7",
+          '-06:00': "America/Mexico_City", '-05:00': "America/Lima",
+          '-04:00': "America/La_Paz", '-03:50': "Canada/Newfoundland",
+          '-03:00': "America/Buenos_Aires", '-02:00': "Etc/GMT-2",
+          '-01:00': "Atlantic/Azores", '+00:00': "Europe/London",
+          '+01:00': "Europe/Madrid", '+02:00': "Europe/Kaliningrad",
+          '+03:00': "Asia/Baghdad", '+03:50': "Asia/Tehran",
+          '+04:00': "Asia/Baku", '+04:50': "Asia/Kabul",
+          '+05:00': "Asia/Karachi", '+05:50': "Asia/Calcutta",
+          '+05:75': "Asia/Kathmandu", '+06:00': "Asia/Dhaka",
+          '+06:50': "Asia/Rangoon", '+07:00': "Asia/Bangkok",
+          '+08:00': "Asia/Hong_Kong", '+08:75': "Australia/Eucla",
+          '+09:00': "Asia/Tokyo", '+09:50': "Australia/Adelaide",
+          '+10:00': "Pacific/Guam", '+10:50': "Australia/Lord_Howe",
+          '+11:00': "Asia/Magadan", '+11:50': "Pacific/Norfolk",
+          '+12:00': "Pacific/Auckland", '+12:75': "Pacific/Chatham",
+          '+13:00': "Pacific/Apia", '+14:00': "Pacific/Fakaofo"}
+
 global PBuzzer
-PinSignalBuzzer = 13    # Pin to feed the Signal to the Buzzer - Signal Pin
-PinPowerBuzzer =12      # Pin for the feeding Voltage for the Buzzer - Power Pin
-PBuzzer = PasBuz.PasBuz(PinSignalBuzzer, PinPowerBuzzer) # Creating one Instance for our Passive Buzzer
+PinSignalBuzzer = 13  # Pin to feed the Signal to the Buzzer - Signal Pin
+PinPowerBuzzer = 12  # Pin for the feeding Voltage for the Buzzer - Power Pin
+PBuzzer = PasBuz.PasBuz(PinSignalBuzzer,
+                        PinPowerBuzzer)  # Creating one Instance for our Passive Buzzer
 try:
     GPIO.setmode(GPIO.BOARD)  # Set's GPIO pins to BCM GPIO numbering
 
-    INPUT_PIN_DOWN = 31           # Pin for the DOWN button
+    INPUT_PIN_DOWN = 31  # Pin for the DOWN button
     GPIO.setup(INPUT_PIN_DOWN, GPIO.IN)  # Set our input pin to be an input
 
-    INPUT_PIN_OK = 29           # Pin for the OK button
+    INPUT_PIN_OK = 29  # Pin for the OK button
     GPIO.setup(INPUT_PIN_OK, GPIO.IN)  # Set our input pin to be an input
 except:
     _logger.debug("Avoid GPIO setmode and setup")
+
 
 # Create a function to run when the input is high
 def inputStateDown(channel):
@@ -71,6 +94,7 @@ def inputStateDown(channel):
     else:
         on_Down = False
 
+
 def inputStateOK(channel):
     global on_OK
     if on_OK == False:
@@ -79,44 +103,27 @@ def inputStateOK(channel):
     else:
         on_OK = False
 
+
 try:
-    GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown, bouncetime=200)
-    GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK, bouncetime=200)
+    GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
+                          bouncetime=200)
+    GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
+                          bouncetime=200)
 except:
     _logger.debug("GPIOs related with buttons are not working")
 
+try:
+    # Create an object of the class MFRC522
+    MIFAREReader = MFRC522.MFRC522()
+except Exception:
+    _logger.debug("Avoid SPI RFID setup")
 
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
-dic_en = {' ': [" ",0,1,0,0,24], 'check_in': ['CHECKED IN',6,1,0,0,22], 'check_out': ['CHECKED OUT',18,2,45,0,22], 'FALSE': ['NOT AUTHORIZED',45,2,8,0,20], 'Bye!': ['Shut Down',5,1,0,0,24], '1': ['1',50,1,0,0,50], '2': ['2',50,1,0,0,50], 'Wifi1': ['Connect to AP;RFID Attendance System',30,2,10,0,12], 'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration',20,2,10,0,12] , 'Wifi3': ['Connect;to;192.168.42.1',20,3,50,1,24], 'Wifi4': ['Wi-Fi;Connection',35,2,15,0,20], 'update': ['Resetting;to;update',20,3,55,35,24], 'config1': ['Connect to;' + get_ip() + ':3000',35,3,25,0,15]}
-dicerror_en = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Odoo;communication;failed',3,41,5,40,'Check;the;parameters',3,41,53,20,19], 'error2': [2,'RFID;intrigrity;failed',3,50,20,35,'Pass;the;card',3,48,45,48,20]}
-
-dic_es = {' ': [" ",0,1,0,0,24], 'check_in': ['ENTRADA REGISTRADA',20,2,3,0,22], 'check_out': ['SALIDA REGISTRADA',30,2,3,0,22], 'FALSE': ['NO AUTORIZADO',53,2,5,0,20], 'Bye!': ['HASTA LUEGO',25,2,25,0,24], 'Wifi1': ['Configuracion WiFi',7,2,35,0,24], 'Wifi2': ['Entra en 10.0.0.1:9191',30,3,50,1,24], 'Wifi3': ['usando RaspiWifi setup',35,3,20,37,24], 'update': ['Reseteando para actualizar',13,3,55,20,24], 'config1': ['Entra en '+get_ip()+' puerto: 3000',18,3,55,15,20]}
-dicerror_es = {' ': [1," ",1,0,0,0,24], 'error1': [2,'Error de comunicacion',3,47,54,15,'Chequea los parametros',3,28,50,20,19], 'error2': [2,'Integridad RFID fallida',3,20,50,35,'Pasa la tarjeta',3,44,55,34,20]}
-
-dic = {'es': dic_es, 'en': dic_en}
-dicerror = {'es': dicerror_es, 'en': dicerror_en}
-
-tz_dic = {'-12:00': "Pacific/Kwajalein",  '-11:00': "Pacific/Samoa",'-10:00': "US/Hawaii",'-09:50': "Pacific/Marquesas",'-09:00': "US/Alaska",'-08:00': "Etc/GMT-8",'-07:00': "Etc/GMT-7",'-06:00': "America/Mexico_City",'-05:00': "America/Lima",'-04:00': "America/La_Paz",'-03:50': "Canada/Newfoundland",'-03:00': "America/Buenos_Aires",'-02:00': "Etc/GMT-2",'-01:00': "Atlantic/Azores",'+00:00': "Europe/London",'+01:00': "Europe/Madrid",'+02:00': "Europe/Kaliningrad",'+03:00': "Asia/Baghdad",'+03:50': "Asia/Tehran",'+04:00': "Asia/Baku",'+04:50': "Asia/Kabul",'+05:00': "Asia/Karachi",'+05:50': "Asia/Calcutta",'+05:75': "Asia/Kathmandu",'+06:00': "Asia/Dhaka",'+06:50': "Asia/Rangoon",'+07:00': "Asia/Bangkok",'+08:00': "Asia/Hong_Kong",'+08:75': "Australia/Eucla",'+09:00': "Asia/Tokyo",'+09:50': "Australia/Adelaide",'+10:00': "Pacific/Guam",'+10:50': "Australia/Lord_Howe",'+11:00': "Asia/Magadan",'+11:50': "Pacific/Norfolk",'+12:00': "Pacific/Auckland",'+12:75': "Pacific/Chatham",'+13:00': "Pacific/Apia",'+14:00': "Pacific/Fakaofo" }
-
-# Create an object of the class MFRC522
-MIFAREReader = MFRC522.MFRC522()
 
 def print_wifi_config():
     global ap_mode
     while ap_mode:
         _logger.debug("Display AP connection instructions")
-        screen_drawing(device,"Wifi4")
+        screen_drawing(device, "Wifi4")
         time.sleep(4)
         screen_drawing(device, "1")
         time.sleep(1)
@@ -127,13 +134,13 @@ def print_wifi_config():
         screen_drawing(device, "Wifi2")
         time.sleep(3)
 
+
 def launch_ap_mode():
     global ap_mode
     reset_lib.reset_to_host_mode()
     _logger.debug("AP Mode Finished")
     ap_mode = False
-    
-    
+
 
 def configure_ap_mode():
     global ap_mode, adm
@@ -141,8 +148,8 @@ def configure_ap_mode():
     adm = True
     _logger.debug("Starting Wifi Connect")
     try:
-       Thread1 = threading.Thread(target=print_wifi_config)
-       Thread2 = threading.Thread(target=launch_ap_mode)
+        Thread1 = threading.Thread(target=print_wifi_config)
+        Thread2 = threading.Thread(target=launch_ap_mode)
     except:
         print("Error: unable to start thread")
     finally:
@@ -151,6 +158,7 @@ def configure_ap_mode():
     while ap_mode:
         pass
     _logger.debug("Leaving configure_ap_mode")
+
 
 def have_internet():
     _logger.debug("check internet connection")
@@ -165,8 +173,8 @@ def have_internet():
         conn.close()
         return False
 
-def scan_card(MIFAREReader,odoo):
 
+def scan_card(MIFAREReader, odoo):
     global object_facade
     global user_id
     global user_password
@@ -182,7 +190,7 @@ def scan_card(MIFAREReader,odoo):
     global error
 
     # Scan for cards
-    (status,TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
+    (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
 
     # If a card is found
     if status == MIFAREReader.MI_OK:
@@ -190,54 +198,58 @@ def scan_card(MIFAREReader,odoo):
         card_found = True
 
     # Get the UID of the card
-    (status,uid) = MIFAREReader.MFRC522_Anticoll()
+    (status, uid) = MIFAREReader.MFRC522_Anticoll()
 
     # If we have the UID, continue
     if status == MIFAREReader.MI_OK:
 
         # _logger.debug(UID)
-        _logger.debug("Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
-        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[-1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[-1] 
+        _logger.debug(
+            "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
+        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
+            -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
+                   -1]
 
         _logger.debug(card)
         if card == admin_id:
             adm = True
-            #turn_off = True
+            # turn_off = True
         # This is the default key for authentication
-        key = [0xFF,0xFF,0xFF,0xFF,0xFF,0xFF]
+        key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
         # Select the scanned tag
         MIFAREReader.MFRC522_SelectTag(uid)
 
         # Authenticate
-        status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key, uid)
+        status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key,
+                                           uid)
 
         # Check if authenticated
         if status == MIFAREReader.MI_OK:
             MIFAREReader.MFRC522_Read(8)
             MIFAREReader.MFRC522_StopCrypto1()
-            if odoo == True:
+            if odoo:
                 _logger.debug("#################################"
-                      "################################################")
+                              "################################################")
                 _logger.debug("PARAMETERS: " + str(host) + " / " + str(
-                      port) + " / " + str(user_name) + " / " + str(
-                      user_password) + " / " + str(dbname))
+                    port) + " / " + str(user_name) + " / " + str(
+                    user_password) + " / " + str(dbname))
                 _logger.debug("##################################"
-                      "###############################################")
+                              "###############################################")
                 try:
-                    connection(host, port, user_name, user_password, dbname)
+                    object_facade = odoo_xmlrpc.connection(host, port, https_on)
                     res = object_facade.execute(
-                            dbname, user_id, user_password, "hr.employee",
-                            "register_attendance", card)
+                        dbname, user_id, user_password, "hr.employee",
+                        "register_attendance", card)
                     _logger.debug(res)
                     msg = res["action"]
-                    _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"+msg)
+                    _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + msg)
                     if res["action"] == "check_in":
-                        PBuzzer.CheckIn()   # Acoustic Melody for Check In
+                        PBuzzer.CheckIn()  # Acoustic Melody for Check In
                     if res["action"] == "check_out":
-                        PBuzzer.CheckOut()   # Acoustic Melody for Check Out
+                        PBuzzer.CheckOut()  # Acoustic Melody for Check Out
                     if res["action"] == "FALSE":
-                        PBuzzer.BuzError()  #Acoustic Melody for Error - RFID Card is not in Database
+                        PBuzzer.BuzError()  # Acoustic Melody for Error - RFID Card is not in Database
                     error = False
                 except:
                     _logger.debug("No Odoo connection")
@@ -248,251 +260,52 @@ def scan_card(MIFAREReader,odoo):
                 error = False
         else:
             _logger.debug("Authentication error")
-            #msg = "error2"
-            #error = True
+            # msg = "error2"
+            # error = True
     else:
         _logger.debug("Scan Card loop")
         error = False
 
 
-def connection(host, port, user, user_pw, database):
-    global user_password
-    user_password = user_pw
-    global db_name, https_on
-    dbname = database
-    _logger.debug("Validating Connection to Odoo via XMLRPC")
-    if https_on: #port in ['443', '80', '']:
-        url_template = "https://%s/xmlrpc/%s"
-        login_facade = xmlrpclib.ServerProxy(url_template % (
-        host, 'common'))
-    else:
-        url_template = "http://%s:%s/xmlrpc/%s"
-        _logger.debug("URL: %s", url_template % (host, port, 'common'))
-        login_facade = xmlrpclib.ServerProxy(url_template % (
-            host, port, 'common'))
-    global user_id
-    user_id = login_facade.login(database, user, user_pw)
-    _logger.debug("USER: %s", user_id)
-    global object_facade
-    if https_on: #port in ['443', '80', '']:
-        object_facade = xmlrpclib.ServerProxy(url_template % (
-            host, 'object'))
-    else:
-         object_facade = xmlrpclib.ServerProxy(url_template % (
-            host, port, 'object'))
-    _logger.debug("object_facade: %s", str(object_facade))
-
-
-def menu(device,msg1,msg2,msg3,msg4,loc):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-                                '/home/pi/ras/fonts','Orkney.ttf')) #'C&C Red Alert [INET].ttf'))
-    font2 = ImageFont.truetype(font_path, 16)
-
-    with canvas(device) as draw:
-        #draw.rectangle(device.bounding_box, outline="white")
-        if loc == 0:
-            draw.rectangle((3, 1, 124, 16), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="black")
-            draw.text((5, 15), msg2, font=font2, fill="white")
-            draw.text((5, 30), msg3, font=font2, fill="white")
-            draw.text((5, 45), msg4, font=font2, fill="white")
-        elif loc == 1:
-            draw.rectangle((3, 17, 124, 30), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="white")
-            draw.text((5, 15), msg2, font=font2, fill="black")
-            draw.text((5, 30), msg3, font=font2, fill="white")
-            draw.text((5, 45), msg4, font=font2, fill="white")
-        elif loc == 2:
-            draw.rectangle((3, 31, 124, 46), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="white")
-            draw.text((5, 15), msg2, font=font2, fill="white")
-            draw.text((5, 30), msg3, font=font2, fill="black")
-            draw.text((5, 45), msg4, font=font2, fill="white")
-        elif loc == 3:
-            draw.rectangle((3, 47, 124, 60), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="white")
-            draw.text((5, 15), msg2, font=font2, fill="white")
-            draw.text((5, 30), msg3, font=font2, fill="white")
-            draw.text((5, 45), msg4, font=font2, fill="black")
-
-
-def screen_drawing(device,info):
-    # use custom font
-    global error, msg, lang
-    font_path = os.path.abspath(os.path.join(
-                                '/home/pi/ras/fonts', 'Orkney.ttf'))
-    if error == True:
-        _logger.debug("ERROR: " + str(error))
-        PBuzzer.BuzError()        # Passive Buzzer gives Error Signal
-        _logger.debug(info)
-        code = info.replace('error', '')
-        font2 = ImageFont.truetype(font_path, dicerror[lang][info][11]-3)
-        fonte = ImageFont.truetype(font_path, 28)
-        with canvas(device) as draw:
-            #draw.rectangle(device.bounding_box, outline="white")
-            draw.text((17, 5), "ERROR", font=fonte, fill="white")
-            draw.text((14, 37), "CODE " + code, font=fonte, fill="white")
-        time.sleep(2)
-        _logger.debug(str(dicerror[lang][info][0]))
-        for i in range(0,dicerror[lang][info][0]+1):
-            _logger.debug("FOR: " + str(i))
-            with canvas(device) as draw:
-                #draw.rectangle(device.bounding_box, outline="white")
-                try:
-                    if dicerror[lang][info][0] != i:
-                        if dicerror[lang][info][2+(i*5)] == 1:
-                            draw.text((dicerror[lang][info][3+(i*5)], 20), dicerror[lang][info][1+(i*5)], font=font2, fill="white")
-                        elif dicerror[lang][info][2+(i*5)] == 2:
-                            a, b = dicerror[lang][info][1+(i*5)].split(";")
-                            draw.text((dicerror[lang][info][3+(i*5)], 10), a, font=font2, fill="white")
-                            draw.text((dicerror[lang][info][4+(i*5)], 45), b, font=font2, fill="white")
-                        else:
-                            a, b, c = dicerror[lang][info][1+(i*5)].split(";")
-                            draw.text((dicerror[lang][info][3+(i*5)], 4), a, font=font2, fill="white")
-                            draw.text((dicerror[lang][info][4+(i*5)], 23), b, font=font2, fill="white")
-                            draw.text((dicerror[lang][info][5+(i*5)], 42), c, font=font2, fill="white")
-                    _logger.debug("1")
-                    time.sleep(2)
-                    _logger.debug("2")
-                except:
-                    draw.text((20, 20), info, font=font2, fill="white")
-                time.sleep(2)
-        msg = "time"
-    else:
-        if info != "time":
-            font2 = ImageFont.truetype(font_path, dic[lang][info][5]-2)
-        else:
-            font2 = ImageFont.truetype(font_path, 30)
-        with canvas(device) as draw:
-            #draw.rectangle(device.bounding_box, outline="white")
-            if info == "time":
-                hour = time.strftime("%H:%M",time.localtime())
-                num_ones = hour.count('1')
-                if num_ones == 0:
-                    draw.text((23, 20), hour, font=font2, fill="white")
-                else:
-                    if num_ones == 1:
-                        draw.text((25, 20), hour, font=font2, fill="white")
-                    else:
-                        if num_ones == 2:
-                            draw.text((28, 20), hour, font=font2, fill="white")
-                        else:
-                            if num_ones == 3:
-                                draw.text((31, 20), hour, font=font2, fill="white")
-                            else:
-                                draw.text((34, 20), hour, font=font2, fill="white")
-            else:
-                try:
-                    if dic[lang][info][2] == 1:
-                        draw.text((dic[lang][info][1], 22+(24-dic[lang][info][5])/2), dic[lang][info][0], font=font2, fill="white")
-                    elif dic[lang][info][2] == 2:
-                        a, b = dic[lang][info][0].split(";")
-                        draw.text((dic[lang][info][1], 10+(24-dic[lang][info][5])/2), a, font=font2, fill="white")
-                        draw.text((dic[lang][info][3], 37+(24-dic[lang][info][5])/2), b, font=font2, fill="white")
-                    else:
-                        a, b, c = dic[lang][info][0].split(";")
-                        draw.text((dic[lang][info][1], 2+(24-dic[lang][info][5])/2), a, font=font2, fill="white")
-                        draw.text((dic[lang][info][3], 22+(24-dic[lang][info][5])/2), b, font=font2, fill="white")
-                        draw.text((dic[lang][info][4], 37+(24-dic[lang][info][5])/2), c, font=font2, fill="white")
-                except:
-                    draw.text((20, 20), info, font=font2, fill="white")
-
-
-def card_drawing(device,id):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-                                '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, 22)
-
-    with canvas(device) as draw:
-        #draw.rectangle(device.bounding_box, outline="white")
-        try:
-            draw.text(15, 20, id, font=font2, fill="white")
-        except:
-            draw.text((15, 20), id, font=font2, fill="white")
-
-
-def double_msg(device,msg1,msg2,size):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-                                '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, size-2)
-
-    with canvas(device) as draw:
-        #draw.rectangle(device.bounding_box, outline="white")
-        draw.text((10, 18), msg1, font=font2, fill="white")
-        draw.text((10, 30), msg2, font=font2, fill="white")
-
-    time.sleep(2)
-
-def welcome_msg(device,size):
-    # use custom font
-    global lang
-    font_path = os.path.abspath(os.path.join(
-                                '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, size-3)
-
-    with canvas(device) as draw:
-        #draw.rectangle(device.bounding_box, outline="white")
-        if lang == "es":
-            draw.text((18, 10), "Bienvenido al", font=font2, fill="white")
-            draw.text((1, 28), "sistema de control", font=font2, fill="white")
-            draw.text((3, 47), "de presencia RFID", font=font2, fill="white")
-
-        else:
-            draw.text((15, 10), "Welcome to the", font=font2, fill="white")
-            draw.text((50, 28), "RFID", font=font2, fill="white")
-            draw.text((1, 43), "Attendance system", font=font2, fill="white")
-    time.sleep(0.5)
-
 def rfid_hr_attendance():
     global error, cnt_found, card_found
-    #hour = time.strftime("%H:%M")
-    if card_found == True:
-        screen_drawing(device,msg)
+    # hour = time.strftime("%H:%M")
+    if card_found:
+        screen_drawing(device, msg)
         cnt_found = cnt_found + 1
         _logger.debug("CNT_FOUND" + str(cnt_found))
         if cnt_found >= 5:
             card_found = False
     else:
         cnt_found = 0
-        screen_drawing(device,"time")
+        screen_drawing(device, "time")
 
-    scan_card(MIFAREReader,True)
+    scan_card(MIFAREReader, True)
+
 
 def rfid_reader():
     global card, error
-    card_drawing(device,card)
-    scan_card(MIFAREReader,False)
+    card_drawing(device, card)
+    scan_card(MIFAREReader, False)
+
 
 def reset_settings():
     global reset
     _logger.debug("Reset Settings selected")
     reset = True
 
+
 def back():
     global turn_off
     _logger.debug("Back selected")
     turn_off = True
 
-def change_language():
-    global lang
-    _logger.debug("Change idiom selected")
-
-    if lang == "es":
-        idiom = {'language' : 'en'}
-    else:
-        idiom = {'language' : 'es'}
-    with open('/home/pi/ras/dicts/idiom.json', 'w') as file:
-        json.dump(idiom, file)
-
 def settings():
-
     _logger.debug("Other settings selected")
 
 
-ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back, '4': reset_settings, '5': change_language}
+ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
+       '4': reset_settings, '5': update_repo}
 
 
 def main():
@@ -502,10 +315,9 @@ def main():
     global elapsed_time
     global adm, update
     global host, port, user_name, user_password, dbname
-    global admin_id, https_on 
+    global admin_id, https_on
     global msg, card, error
     global device
-    global error, lang
     global on_Down, on_OK
     start_time = time.time()
 
@@ -526,10 +338,8 @@ def main():
             while enter == False and turn_off == False and update == False:
                 elapsed_time = time.time() - start_time
                 if menu_sel == 1:
-                    if lang == "es":
-                        menu(device,"RFID - Odoo","Lector RFID","Ajustes","Salir",pos)
-                    else:
-                        menu(device,"RFID - Odoo","RFID reader","Settings","Exit",pos)
+                    menu(device, "RFID - Odoo", "RFID reader", "Settings",
+                         "Exit", pos)
                     try:
                         # Check if the OK button is pressed
                         if on_OK != on_OK_old:
@@ -546,10 +356,8 @@ def main():
                     except KeyboardInterrupt:
                         break
                 else:
-                    if lang == "es":
-                        menu(device,"Reset WiFi","Cambiar idioma","Atras","",pos2)
-                    else:
-                        menu(device,"WiFi Reset","Change language","Back","",pos2)
+                    menu(device, "WiFi Reset", "Update Firmware", "Back",
+                         "", pos2)
                     try:
                         # Check if the OK button is pressed
                         if on_OK != on_OK_old:
@@ -573,15 +381,8 @@ def main():
                 json_file = open('/home/pi/ras/dicts/idiom.json')
                 json_data = json.load(json_file)
                 json_file.close()
-                lang = json_data["language"][0]
-                lang2 = json_data["language"]
-                if lang2 == "es":
-                    lang = "es"
-                else:
-                    if lang2 == "en":
-                        lang = "en"
             # CHOSEN FUNCTIONALITY
-            if enter == True:
+            if enter:
                 enter = False
                 if pos == 2:
                     adm = True
@@ -593,8 +394,9 @@ def main():
                         elapsed_time = time.time() - start_time
                         if pos == 0:
                             _logger.debug("Reading data.json")
-                            while not os.path.isfile("/home/pi/ras/dicts/data.json"):
-                                screen_drawing(device,"config1")
+                            while not os.path.isfile(
+                                    "/home/pi/ras/dicts/data.json"):
+                                screen_drawing(device, "config1")
                                 time.sleep(4)
                             if os.path.isfile("/home/pi/ras/dicts/data.json"):
                                 json_file = open('/home/pi/ras/dicts/data.json')
@@ -618,16 +420,17 @@ def main():
                                     update = False
                                 else:
                                     update = True
-                                    _logger.debug("THIS IS UPDATE: " + str(update))
-                                reset_lib.test_connection(host, port, user_name, user_password, dbname)
+                                    _logger.debug(
+                                        "THIS IS UPDATE: " + str(update))
+                                # reset_lib.test_connection(host, port, user_name, user_password, dbname)
                             else:
                                 raise ValueError("It is not a file!")
                         else:
                             _logger.debug("POS " + str(pos))
                         if flag_m == 0:
-                            ops[str(pos)]() #rfid_hr_attendance()
+                            ops[str(pos)]()  # rfid_hr_attendance()
                         else:
-                            ops[str(pos2+4)]()
+                            ops[str(pos2 + 4)]()
                             if pos2 == 1:
                                 adm = True
                         if os.path.isfile("/home/pi/ras/dicts/data.json"):
@@ -639,20 +442,11 @@ def main():
                                 update = False
                             else:
                                 update = True
-                        if adm == True:
+                        if adm:
                             _logger.debug(str(adm))
                         json_file = open('/home/pi/ras/dicts/idiom.json')
                         json_data = json.load(json_file)
                         json_file.close()
-                        lang = json_data["language"][0]
-                        lang2 = json_data["language"]
-                        if lang2 == "es":
-                            lang = "es"
-                        else:
-                            if lang2 == "en":
-                                lang = "en"
-
-
                     except KeyboardInterrupt:
                         break
                 pos = 0
@@ -660,19 +454,13 @@ def main():
                 _logger.debug("on_OK: " + str(on_OK))
 
     else:
-        # screen_drawing(device,"Wifi1")
-        # time.sleep(3)
-        # screen_drawing(device,"Wifi2")
-        # time.sleep(3)
-        # screen_drawing(device,"Wifi3")
-        # time.sleep(2)
         if not reset_lib.is_wifi_active():
             configure_ap_mode()
             main()
 
 
 def m_functionality():
-    global device, lang
+    global device
     global update
     global reset
     _logger.debug("m_functionality() call")
@@ -689,34 +477,21 @@ def m_functionality():
         img = Image.composite(logo, fff, logo)
         background.paste(img, posn)
         device.display(background.convert(device.mode))
-
-        json_file = open('/home/pi/ras/dicts/idiom.json')
-        json_data = json.load(json_file)
-        json_file.close()
-        lang = json_data["language"][0]
-        lang2 = json_data["language"]
-        if lang2 == "es":
-            lang = "es"
-        else:
-            if lang2 == "en":
-                lang = "en"
-
-        time.sleep(4)
-        welcome_msg(device,17)
+        welcome_msg(device, 17)
         time.sleep(4)
         main()
-        if update == True:
-            screen_drawing(device,"update")
+        if update:
+            screen_drawing(device, "update")
             time.sleep(2)
-            screen_drawing(device," ")
+            screen_drawing(device, " ")
             GPIO.cleanup()
-        if reset == True:
+        if reset:
             reset = False
             configure_ap_mode()
             main()
-        screen_drawing(device,"Bye!")
+        screen_drawing(device, "Bye!")
         time.sleep(3)
-        screen_drawing(device," ")
+        screen_drawing(device, " ")
         GPIO.cleanup()
         return update
 
