@@ -23,7 +23,7 @@ from urllib.parse import urlparse as urlparse
 
 from .demo_opts import get_device
 from . import MFRC522
-from .reset_lib import is_wifi_active, reset_to_host_mode, update_repo
+from .reset_lib import is_wifi_active, reset_to_host_mode, update_repo, reboot
 from . import PasBuz
 from . import odoo_xmlrpc
 from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg
@@ -302,9 +302,46 @@ def back():
 def settings():
     _logger.debug("Other settings selected")
 
+def updating_repo():
+    global updating
+    update_repo()
+    _logger.debug("Update finished")
+    updating = False
+
+def print_update_repo():
+    global updating
+    while updating:
+        _logger.debug("Display updating firmware")
+        screen_drawing(device, "update")
+        time.sleep(4)
+
+def update_firmware():
+    if have_internet():
+        global updating
+        _logger.debug("Updating repository")
+        updating = True
+        try:
+            Thread3 = threading.Thread(target=print_update_repo)
+            Thread4 = threading.Thread(target=updating_repo)
+        except:
+            print("Error: unable to start thread")
+        finally:
+            Thread3.start()
+            Thread4.start()
+        while updating:
+            pass
+        _logger.debug("Leaving update_firmware and rebooting")
+        screen_drawing(device, "shut_down")
+        time.sleep(4)
+        reboot()
+    else:
+        back()
+
+
+
 
 ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
-       '4': reset_settings, '5': update_repo}
+       '4': reset_settings, '5': update_firmware}
 
 
 def main():
@@ -355,7 +392,7 @@ def main():
                     except KeyboardInterrupt:
                         break
                 else:
-                    menu(device, "WiFi Reset", "Update Firmware", "Back",
+                    menu(device, "WiFi Reset", "Update RAS", "Back",
                          "", pos2)
                     try:
                         # Check if the OK button is pressed
@@ -464,7 +501,7 @@ def m_functionality():
             reset = False
             configure_ap_mode()
             main()
-        screen_drawing(device, "Bye!")
+        screen_drawing(device, "shut_down")
         time.sleep(3)
         screen_drawing(device, " ")
         GPIO.cleanup()
