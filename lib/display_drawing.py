@@ -62,7 +62,7 @@ def menu(device, msg1, msg2, msg3, msg4, loc):
 
 def screen_drawing(device, info):
     # use custom font
-    global error, msg, lang
+    global error, msg
     font_path = os.path.abspath(os.path.join(
         '/home/pi/ras/fonts', 'Orkney.ttf'))
     if error:
@@ -193,20 +193,12 @@ def double_msg(device, msg1, msg2, size):
 
 def welcome_msg(device, size):
     # use custom font
-    global lang
     font_path = os.path.abspath(os.path.join(
         '/home/pi/ras/fonts', 'Orkney.ttf'))
     font2 = ImageFont.truetype(font_path, size - 3)
-
     with canvas(device) as draw:
         # draw.rectangle(device.bounding_box, outline="white")
-        if lang == "es":
-            draw.text((18, 10), "Bienvenido al", font=font2, fill="white")
-            draw.text((1, 28), "sistema de control", font=font2, fill="white")
-            draw.text((3, 47), "de presencia RFID", font=font2, fill="white")
-
-        else:
-            draw.text((15, 10), "Welcome to the", font=font2, fill="white")
-            draw.text((50, 28), "RFID", font=font2, fill="white")
-            draw.text((1, 43), "Attendance system", font=font2, fill="white")
+        draw.text((15, 10), "Welcome to the", font=font2, fill="white")
+        draw.text((50, 28), "RFID", font=font2, fill="white")
+        draw.text((1, 43), "Attendance system", font=font2, fill="white")
     time.sleep(0.5)
