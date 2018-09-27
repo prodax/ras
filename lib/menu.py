@@ -288,8 +288,6 @@ def update_firmware():
         OLED1106.screen_drawing("shut_down")
         time.sleep(4)
         reboot()
-    else:
-        back()
 
 
 ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
