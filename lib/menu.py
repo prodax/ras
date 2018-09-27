@@ -23,7 +23,6 @@ turn_off = False
 adm = True
 pos = 0
 enter = False
-reset = False
 on_Down = False
 on_OK = False
 ap_mode = False
@@ -100,7 +99,7 @@ odoo = instance_connection()
 # Create a function to run when the input is high
 def inputStateDown(channel):
     global on_Down
-    if on_Down == False:
+    if on_Down is False:
         _logger.debug('Down Pressed')
         on_Down = True
     else:
@@ -109,7 +108,7 @@ def inputStateDown(channel):
 
 def inputStateOK(channel):
     global on_OK
-    if on_OK == False:
+    if on_OK is False:
         _logger.debug('OK Pressed')
         on_OK = True
     else:
@@ -237,12 +236,10 @@ def rfid_reader():
 
 
 def reset_settings():
-    global reset
     _logger.debug("Reset Settings selected")
     configure_ap_mode()
-    reset = False
     main()
-    
+
 
 
 def back():
@@ -318,7 +315,7 @@ def main():
             adm = False
             flag_m = 0
             # MENU
-            while enter == False and turn_off == False:
+            while enter is False and turn_off is False:
                 if menu_sel == 1:
                     OLED1106.display_menu('Main', pos)
                     try:
@@ -366,11 +363,11 @@ def main():
                     menu_sel = 2
                 else:
                     menu_sel = 1
-                while reset == False and adm == False and turn_off == False:
+                while adm is False and turn_off is False:
                     try:
                         if pos == 0:
-                            while not odoo or odoo.uid == False:
-                                if odoo.uid == False:
+                            while not odoo or odoo.uid is False:
+                                if odoo.uid is False:
                                     del odoo
                                     OLED1106.screen_drawing("config1")
                                 _logger.debug("No Odoo connection available")

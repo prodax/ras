@@ -7,7 +7,8 @@ RUN apt update && apt install -yq \
 
  # Copy requirements.txt first for better cache on later pushes
 COPY . /home/pi/ras
-RUN pip3 install -r /home/pi/ras/requeriments.txt
+RUN pip3 install -r /home/pi/ras/requeriments.txt && \
+    pip3 install luma.emulator
 
 # config-server will run when container starts up on the device
 #  CMD ["python3","-u","/home/pi/ras/launcher.py","&","python3","-u","/home/pi/ras/web/config-server.py","&"]
