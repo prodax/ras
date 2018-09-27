@@ -6,8 +6,8 @@ from PIL import Image, ImageFont
 
 from luma.core.render import canvas
 
-from .demo_opts import get_device
-from .reset_lib import get_ip
+from lib.demo_opts import get_device
+from lib.reset_lib import get_ip
 
 _logger = logging.getLogger(__name__)
 

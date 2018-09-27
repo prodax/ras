@@ -6,8 +6,8 @@ import time
 
 import RPi.GPIO as GPIO
 
-from . import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
-from .reset_lib import (have_internet, is_wifi_active, reboot,
+from lib import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
+from lib.reset_lib import (have_internet, is_wifi_active, reboot,
                         reset_to_host_mode, update_repo)
 
 _logger = logging.getLogger(__name__)
@@ -205,7 +205,7 @@ def scan_card(MIFAREReader, odoo):
                 res = odoo.check_attendance(card)
                 if res:
                     msg = res["action"]
-                    _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + msg)
+                    _logger.debug(msg)
                     if res["action"] == "check_in":
                         PBuzzer.CheckIn()  # Acoustic Melody for Check In
                     if res["action"] == "check_out":

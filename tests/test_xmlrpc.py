@@ -1,5 +1,5 @@
 import unittest
-from ras.lib.odoo_xmlrpc import OdooXmlRPC
+from lib.odoo_xmlrpc import OdooXmlRPC
 
 class TestXmlRPC(unittest.TestCase):
 
