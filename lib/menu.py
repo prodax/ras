@@ -228,7 +228,6 @@ def scan_card(MIFAREReader, odoo):
             # msg = "error2"
             # error = True
     else:
-        _logger.debug("Scan Card loop")
         error = False
 
 
@@ -393,12 +392,13 @@ def main():
                     try:
                         elapsed_time = time.time() - start_time
                         if pos == 0:
-                            _logger.debug("Reading data.json")
                             while not odoo:
+                                _logger.debug("No Odoo connection available")
                                 while not os.path.isfile(
                                         os.path.abspath(
                                             os.path.join(WORK_DIR,
                                                          'dicts/data.json'))):
+                                    _logger.debug("No data.json available")
                                     OLED1106.screen_drawing("config1")
                                     time.sleep(4)
                                 odoo = instance_connection()
