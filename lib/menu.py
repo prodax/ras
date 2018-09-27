@@ -4,7 +4,7 @@ import os
 import threading
 import time
 
-from lib import WORK_DIR
+
 
 from . import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
 from .reset_lib import (have_internet, is_wifi_active, reboot,
@@ -13,6 +13,8 @@ from .reset_lib import (have_internet, is_wifi_active, reboot,
 import RPi.GPIO as GPIO
 
 _logger = logging.getLogger(__name__)
+
+WORK_DIR = '/home/pi/ras/'
 
 error = False
 card_found = False
@@ -49,6 +51,7 @@ tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
           '+12:00': "Pacific/Auckland", '+12:75': "Pacific/Chatham",
           '+13:00': "Pacific/Apia", '+14:00': "Pacific/Fakaofo"}
 
+global PBuzzer
 PinSignalBuzzer = 13  # Pin to feed the Signal to the Buzzer - Signal Pin
 PinPowerBuzzer = 12  # Pin for the feeding Voltage for the Buzzer - Power Pin
 PBuzzer = PasBuz.PasBuz(PinSignalBuzzer,
@@ -85,10 +88,12 @@ def instance_connection():
             https_on = False
         else:
             https_on = True
-            odoo = odoo_xmlrpc.OdooXmlRPC(host, port, https_on, dbname, user_name,
-                                      user_password)
+        _logger.debug('Instancing OdooXmlRPC')
+        odoo = odoo_xmlrpc.OdooXmlRPC(host, port, https_on, dbname, user_name,
+                                    user_password)
         return odoo
     else:
+        _logger.debug('data.json not found')
         return False
 
 
@@ -240,7 +245,7 @@ def rfid_hr_attendance():
         cnt_found = 0
         OLED1106.screen_drawing("time")
 
-    scan_card(MIFAREReader, True)
+    scan_card(MIFAREReader, odoo)
 
 
 def rfid_reader():
