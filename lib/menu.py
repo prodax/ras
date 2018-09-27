@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 
 WORK_DIR = '/home/pi/ras/'
 
-error = False
+
 card_found = False
 
 cnt_found = 0
@@ -166,7 +166,6 @@ def scan_card(MIFAREReader, odoo):
     global msg
     global adm, turn_off
     global admin_id
-    global error
 
     # Scan for cards
     (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
@@ -218,22 +217,10 @@ def scan_card(MIFAREReader, odoo):
                         PBuzzer.CheckOut()  # Acoustic Melody for Check Out
                     if res["action"] == "FALSE":
                         PBuzzer.BuzError()  # Acoustic Melody for Error - RFID Card is not in Database
-                    error = False
-                else:
-                    error = True
-            else:
-                error = False
-        else:
-            _logger.debug("Authentication error")
-            # msg = "error2"
-            # error = True
-    else:
-        error = False
 
 
 def rfid_hr_attendance():
-    global error, cnt_found, card_found
-    # hour = time.strftime("%H:%M")
+    global cnt_found, card_found
     if card_found:
         OLED1106.screen_drawing(msg)
         cnt_found = cnt_found + 1
@@ -248,7 +235,7 @@ def rfid_hr_attendance():
 
 
 def rfid_reader():
-    global card, error
+    global card
     OLED1106.card_drawing(card)
     scan_card(MIFAREReader, False)
 
@@ -320,7 +307,7 @@ def main():
     global elapsed_time
     global adm
     global admin_id
-    global msg, card, error
+    global msg, card
     global on_Down, on_OK
     global odoo
     start_time = time.time()
@@ -335,7 +322,6 @@ def main():
         while adm:
             msg = " "
             card = " "
-            error = False
             adm = False
             flag_m = 0
             # MENU
