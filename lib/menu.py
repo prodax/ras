@@ -392,7 +392,10 @@ def main():
                     try:
                         elapsed_time = time.time() - start_time
                         if pos == 0:
-                            while not odoo:
+                            while not odoo or odoo.uid == False:
+                                if odoo.uid == False:
+                                    del odoo
+                                    OLED1106.screen_drawing("config1")
                                 _logger.debug("No Odoo connection available")
                                 while not os.path.isfile(
                                         os.path.abspath(
@@ -400,7 +403,6 @@ def main():
                                                          'dicts/data.json'))):
                                     _logger.debug("No data.json available")
                                     OLED1106.screen_drawing("config1")
-                                    time.sleep(4)
                                 odoo = instance_connection()
                         else:
                             _logger.debug("POS " + str(pos))
