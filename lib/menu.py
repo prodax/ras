@@ -91,7 +91,7 @@ def instance_connection():
         return False
 
 
-odoo_xmlrpc = instance_connection()
+odoo = instance_connection()
 
 
 # Create a function to run when the input is high
@@ -202,7 +202,7 @@ def scan_card(MIFAREReader, odoo):
             MIFAREReader.MFRC522_Read(8)
             MIFAREReader.MFRC522_StopCrypto1()
             if odoo:
-                res = odoo_xmlrpc.check_attendance(card)
+                res = odoo.check_attendance(card)
                 if res:
                     msg = res["action"]
                     _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + msg)
@@ -314,7 +314,7 @@ def main():
     global admin_id
     global msg, card, error
     global on_Down, on_OK
-    global odoo_xmlrpc
+    global odoo
     start_time = time.time()
 
     if have_internet():
@@ -385,14 +385,14 @@ def main():
                         elapsed_time = time.time() - start_time
                         if pos == 0:
                             _logger.debug("Reading data.json")
-                            while not odoo_xmlrpc:
+                            while not odoo:
                                 while not os.path.isfile(
                                         os.path.abspath(
                                             os.path.join(WORK_DIR,
                                                          'dicts/data.json'))):
                                     OLED1106.screen_drawing("config1")
                                     time.sleep(4)
-                                odoo_xmlrpc = instance_connection()
+                                odoo = instance_connection()
                         else:
                             _logger.debug("POS " + str(pos))
                         if flag_m == 0:
