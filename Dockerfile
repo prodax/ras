@@ -10,7 +10,7 @@ COPY . /home/pi/ras
 RUN pip3 install -r /home/pi/ras/requeriments.txt
 
 # config-server will run when container starts up on the device
-#  CMD ["python3","-u","/home/hveficent/Eficent/RASv2/ras/launcher.py","&","python3","-u","/home/hveficent/Eficent/RASv2/ras/web/config-server.py","&"]
+#  CMD ["python3","-u","/home/pi/ras/launcher.py","&","python3","-u","/home/pi/ras/web/config-server.py","&"]
 
 CMD ["python3","-u","/home/pi/ras/config-server.py"]
 

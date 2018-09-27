@@ -17,7 +17,7 @@ class OdooXmlRPC(object):
         else:
             self.url_template = ("http://%s:%s/xmlrpc/" % (host, port))
         
-        self.uid = self.get_user_id()
+        self.uid = self._get_user_id()
 
     def _get_object_facade(self, url):
         _logger.debug("Creating object_facade")
@@ -47,5 +47,5 @@ class OdooXmlRPC(object):
             _logger.debug(res)
             return res
         except Exception as e:
-            _logger.debug("check_attendance exception request: "+ e)
+            _logger.debug("check_attendance exception request: "+ str(e))
             return False

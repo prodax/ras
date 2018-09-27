@@ -5,7 +5,7 @@ app = Flask(__name__)
 
 babel = Babel(app)
 
-WORK_DIR = "/home/hveficent/Eficent/RASv2/ras/"
+WORK_DIR = "/home/pi/ras/"
 
 @babel.localeselector
 def get_locale():

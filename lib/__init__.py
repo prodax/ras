@@ -6,5 +6,5 @@ from . import demo_opts
 from . import odoo_xmlrpc
 from . import display_drawing
 
-WORK_DIR = "/home/hveficent/Eficent/RASv2/ras/"
+WORK_DIR = "/home/pi/ras/"
 DISPLAY = "sh1106"

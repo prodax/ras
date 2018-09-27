@@ -6,15 +6,13 @@ import time
 
 from lib import WORK_DIR
 
-from . import MFRC522, PasBuz, display_drawing
+from . import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
 from .reset_lib import (have_internet, is_wifi_active, reboot,
                         reset_to_host_mode, update_repo)
 
 import RPi.GPIO as GPIO
 
 _logger = logging.getLogger(__name__)
-
-OLED1106 = display_drawing.DisplayDrawning()
 
 error = False
 card_found = False
@@ -51,6 +49,51 @@ tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
           '+12:00': "Pacific/Auckland", '+12:75': "Pacific/Chatham",
           '+13:00': "Pacific/Apia", '+14:00': "Pacific/Fakaofo"}
 
+PinSignalBuzzer = 13  # Pin to feed the Signal to the Buzzer - Signal Pin
+PinPowerBuzzer = 12  # Pin for the feeding Voltage for the Buzzer - Power Pin
+PBuzzer = PasBuz.PasBuz(PinSignalBuzzer,
+                        PinPowerBuzzer)  # Creating one Instance for our Passive Buzzer
+GPIO.setmode(GPIO.BOARD)  # Set's GPIO pins to BCM GPIO numbering
+
+INPUT_PIN_DOWN = 31  # Pin for the DOWN button
+GPIO.setup(INPUT_PIN_DOWN, GPIO.IN)  # Set our input pin to be an input
+
+INPUT_PIN_OK = 29  # Pin for the OK button
+GPIO.setup(INPUT_PIN_OK, GPIO.IN)  # Set our input pin to be an input
+
+OLED1106 = display_drawing.DisplayDrawning()
+
+
+def instance_connection():
+    global admin_id
+    if os.path.isfile(os.path.abspath(
+            os.path.join(WORK_DIR, 'dicts/data.json'))):
+        json_file = open(os.path.abspath(
+            os.path.join(WORK_DIR, 'dicts/data.json')))
+        json_data = json.load(json_file)
+        json_file.close()
+        host = json_data["odoo_host"][0]
+        port = json_data["odoo_port"][0]
+        user_name = json_data["user_name"][0]
+        user_password = json_data["user_password"][0]
+        dbname = json_data["db"][0]
+        admin_id = json_data["admin_id"][0]
+        timezone = json_data["timezone"][0]
+        os.environ['TZ'] = tz_dic[timezone]
+        time.tzset()
+        if "https" not in json_data:
+            https_on = False
+        else:
+            https_on = True
+        return odoo_xmlrpc.OdooXmlRPC(host, port, https_on, dbname, user_name,
+                                      user_password)
+    else:
+        return False
+
+
+odoo_xmlrpc = instance_connection()
+
+
 # Create a function to run when the input is high
 def inputStateDown(channel):
     global on_Down
@@ -70,19 +113,13 @@ def inputStateOK(channel):
         on_OK = False
 
 
-try:
-    GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
-                          bouncetime=200)
-    GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
-                          bouncetime=200)
-except:
-    _logger.debug("GPIOs related with buttons are not working")
+GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
+                      bouncetime=200)
+GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
+                      bouncetime=200)
 
-try:
-    # Create an object of the class MFRC522
-    MIFAREReader = MFRC522.MFRC522()
-except Exception:
-    _logger.debug("Avoid SPI RFID setup")
+# Create an object of the class MFRC522
+MIFAREReader = MFRC522.MFRC522()
 
 
 def print_wifi_config():
@@ -105,31 +142,21 @@ def configure_ap_mode():
     adm = True
     _logger.debug("Starting Wifi Connect")
     try:
-        Thread1 = threading.Thread(target=print_wifi_config)
-        Thread2 = threading.Thread(target=launch_ap_mode)
+        thread1 = threading.Thread(target=print_wifi_config)
+        thread2 = threading.Thread(target=launch_ap_mode)
     except:
         print("Error: unable to start thread")
     finally:
-        Thread1.start()
-        Thread2.start()
+        thread1.start()
+        thread2.start()
     while ap_mode:
         pass
     _logger.debug("Leaving configure_ap_mode")
 
 
-
-
-
 def scan_card(MIFAREReader, odoo):
-    global object_facade
-    global user_id
-    global user_password
-    global db_name
     global card
     global card_found
-    global user_name
-    global host
-    global port
     global msg
     global adm, turn_off
     global admin_id
@@ -154,7 +181,7 @@ def scan_card(MIFAREReader, odoo):
             "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
         card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
             -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
-            -1]
+                   -1]
 
         _logger.debug(card)
         if card == admin_id:
@@ -175,7 +202,19 @@ def scan_card(MIFAREReader, odoo):
             MIFAREReader.MFRC522_Read(8)
             MIFAREReader.MFRC522_StopCrypto1()
             if odoo:
-                odoo.check_attendance(card)
+                res = odoo_xmlrpc.check_attendance(card)
+                if res:
+                    msg = res["action"]
+                    _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + msg)
+                    if res["action"] == "check_in":
+                        PBuzzer.CheckIn()  # Acoustic Melody for Check In
+                    if res["action"] == "check_out":
+                        PBuzzer.CheckOut()  # Acoustic Melody for Check Out
+                    if res["action"] == "FALSE":
+                        PBuzzer.BuzError()  # Acoustic Melody for Error - RFID Card is not in Database
+                    error = False
+                else:
+                    error = True
             else:
                 error = False
         else:
@@ -246,13 +285,13 @@ def update_firmware():
         _logger.debug("Updating repository")
         updating = True
         try:
-            Thread3 = threading.Thread(target=print_update_repo)
-            Thread4 = threading.Thread(target=updating_repo)
+            thread3 = threading.Thread(target=print_update_repo)
+            thread4 = threading.Thread(target=updating_repo)
         except:
             print("Error: unable to start thread")
         finally:
-            Thread3.start()
-            Thread4.start()
+            thread3.start()
+            thread4.start()
         while updating:
             pass
         _logger.debug("Leaving update_firmware and rebooting")
@@ -272,10 +311,10 @@ def main():
     global enter, turn_off
     global elapsed_time
     global adm
-    global host, port, user_name, user_password, dbname
-    global admin_id, https_on
+    global admin_id
     global msg, card, error
     global on_Down, on_OK
+    global odoo_xmlrpc
     start_time = time.time()
 
     if have_internet():
@@ -346,32 +385,14 @@ def main():
                         elapsed_time = time.time() - start_time
                         if pos == 0:
                             _logger.debug("Reading data.json")
-                            while not os.path.isfile(
-                                    os.path.abspath(
-                                        os.path.join(WORK_DIR, 'dicts/data.json'))):
-                                OLED1106.screen_drawing("config1")
-                                time.sleep(4)
-                            if os.path.isfile(os.path.abspath(
-                                    os.path.join(WORK_DIR, 'dicts/data.json'))):
-                                json_file = open(os.path.abspath(
-                                    os.path.join(WORK_DIR, 'dicts/data.json')))
-                                json_data = json.load(json_file)
-                                json_file.close()
-                                host = json_data["odoo_host"][0]
-                                port = json_data["odoo_port"][0]
-                                user_name = json_data["user_name"][0]
-                                user_password = json_data["user_password"][0]
-                                dbname = json_data["db"][0]
-                                admin_id = json_data["admin_id"][0]
-                                timezone = json_data["timezone"][0]
-                                os.environ['TZ'] = tz_dic[timezone]
-                                time.tzset()
-                                if "https" not in json_data:
-                                    https_on = False
-                                else:
-                                    https_on = True
-                            else:
-                                raise ValueError("It is not a file!")
+                            while not odoo_xmlrpc:
+                                while not os.path.isfile(
+                                        os.path.abspath(
+                                            os.path.join(WORK_DIR,
+                                                         'dicts/data.json'))):
+                                    OLED1106.screen_drawing("config1")
+                                    time.sleep(4)
+                                odoo_xmlrpc = instance_connection()
                         else:
                             _logger.debug("POS " + str(pos))
                         if flag_m == 0:

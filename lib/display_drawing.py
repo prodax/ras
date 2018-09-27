@@ -12,7 +12,7 @@ from .reset_lib import get_ip
 
 _logger = logging.getLogger(__name__)
 
-WORK_DIR = '/home/hveficent/Eficent/RASv2/ras/'
+WORK_DIR = '/home/pi/ras/'
 
 dic = {
     ' ': [" ", 0, 1, 0, 0, 24],
