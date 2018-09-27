@@ -18,15 +18,14 @@
 #    You should have received a copy of the GNU Lesser General Public License
 #    along with MFRC522-Python.  If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    import RPi.GPIO as GPIO
-except:
-    import RPiSim as GPIO
 
-import spi
 import signal
 import time
-  
+
+import RPi.GPIO as GPIO
+import spi
+
+
 class MFRC522:
   NRSTPD = 22
   

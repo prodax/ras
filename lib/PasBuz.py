@@ -11,12 +11,12 @@
 #
 #---------------------------------------------------
 
-try:
-    import RPi.GPIO as GPIO
-except:
-    import RPiSim as GPIO
-import time
+
 import sys
+import time
+
+import RPi.GPIO as GPIO
+
 
 class PasBuz:
 

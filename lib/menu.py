@@ -4,13 +4,11 @@ import os
 import threading
 import time
 
-
+import RPi.GPIO as GPIO
 
 from . import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
 from .reset_lib import (have_internet, is_wifi_active, reboot,
                         reset_to_host_mode, update_repo)
-
-import RPi.GPIO as GPIO
 
 _logger = logging.getLogger(__name__)
 
@@ -23,7 +21,6 @@ cnt_found = 0
 admin_id = "FFFFFFFF"
 turn_off = False
 adm = True
-elapsed_time = 0.0
 pos = 0
 enter = False
 reset = False
@@ -165,7 +162,6 @@ def scan_card(MIFAREReader, odoo):
     global card_found
     global msg
     global adm, turn_off
-    global admin_id
 
     # Scan for cards
     (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
@@ -304,13 +300,10 @@ ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
 def main():
     global pos
     global enter, turn_off
-    global elapsed_time
     global adm
-    global admin_id
     global msg, card
     global on_Down, on_OK
     global odoo
-    start_time = time.time()
 
     if have_internet():
 
@@ -326,7 +319,6 @@ def main():
             flag_m = 0
             # MENU
             while enter == False and turn_off == False:
-                elapsed_time = time.time() - start_time
                 if menu_sel == 1:
                     OLED1106.display_menu('Main', pos)
                     try:
@@ -376,7 +368,6 @@ def main():
                     menu_sel = 1
                 while reset == False and adm == False and turn_off == False:
                     try:
-                        elapsed_time = time.time() - start_time
                         if pos == 0:
                             while not odoo or odoo.uid == False:
                                 if odoo.uid == False:
@@ -398,13 +389,6 @@ def main():
                             ops[str(pos2 + 4)]()
                             if pos2 == 1:
                                 adm = True
-                        if os.path.isfile(os.path.abspath(
-                                os.path.join(WORK_DIR, 'dicts/data.json'))):
-                            json_file = open(os.path.abspath(
-                                os.path.join(WORK_DIR, 'dicts/data.json')))
-                            json_data = json.load(json_file)
-                            json_file.close()
-                            admin_id = json_data["admin_id"][0]
                         if adm:
                             _logger.debug(str(adm))
                     except KeyboardInterrupt:

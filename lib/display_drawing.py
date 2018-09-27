@@ -4,10 +4,9 @@ import time
 
 from PIL import Image, ImageFont
 
-from .demo_opts import get_device
-# from lib import WORK_DIR
 from luma.core.render import canvas
 
+from .demo_opts import get_device
 from .reset_lib import get_ip
 
 _logger = logging.getLogger(__name__)

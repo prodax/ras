@@ -36,7 +36,7 @@ def reset_to_host_mode():
 
 def update_repo():
     os.chdir('/home/pi/ras')
-    os.system("sudo git fetch origin refactoring_2")
+    os.system("sudo git fetch origin ")
     os.system('sudo git reset --hard origin/refactoring_2')
 
 
