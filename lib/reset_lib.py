@@ -39,12 +39,14 @@ def update_repo():
     os.system("sudo git fetch origin ")
     os.system('sudo git reset --hard origin/refactoring_2')
 
-
 def reboot():
     print("rebooting")
     os.system('sudo reboot')
 
-
+def run_tests():
+    os.chdir('/home/pi/ras')
+    os.system('sudo sh run_tests.sh')
+    
 def have_internet():
     _logger.debug("check internet connection")
     conn = httplib.HTTPConnection("www.google.com", timeout=10)

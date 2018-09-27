@@ -4,13 +4,13 @@ from lib.odoo_xmlrpc import OdooXmlRPC
 class TestXmlRPC(unittest.TestCase):
 
     def setUp(self):
-        host = "localhost"
-        port = "8069"
-        user = "admin"
-        user_pw = "admin"
-        database = "11.0-mig-hr_attendance_rfid"
-        https_on = False
-        self.right_rfid = "19c2af28"
+        host = "demorfid.eficent.io"
+        port = ""
+        user = "rfid_attendance"
+        user_pw = "rfid_attendance"
+        database = "prod"
+        https_on = True
+        self.right_rfid = "c0a5c72d"
         self.wrong_rfid = "FFFFFFFF"
         self.odoo_xmlrpc = OdooXmlRPC(host, port, https_on, database, user, user_pw)
 

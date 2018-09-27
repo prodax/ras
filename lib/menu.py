@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 
 from lib import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
 from lib.reset_lib import (have_internet, is_wifi_active, reboot,
-                        reset_to_host_mode, update_repo)
+                        reset_to_host_mode, update_repo, run_tests)
 
 _logger = logging.getLogger(__name__)
 
@@ -283,6 +283,8 @@ def update_firmware():
         while updating:
             pass
         _logger.debug("Leaving update_firmware and rebooting")
+        GPIO.cleanup()
+        run_tests()
         OLED1106.screen_drawing("shut_down")
         time.sleep(4)
         reboot()
@@ -368,6 +370,10 @@ def main():
                         if pos == 0:
                             while not odoo or odoo.uid is False:
                                 if odoo.uid is False:
+                                    OLED1106.screen_drawing("comERR1")
+                                    time.sleep(3)
+                                    OLED1106.screen_drawing("comERR2")
+                                    time.sleep(3)
                                     del odoo
                                     OLED1106.screen_drawing("config1")
                                 _logger.debug("No Odoo connection available")

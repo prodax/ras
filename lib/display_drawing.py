@@ -25,11 +25,9 @@ dic = {
     'Wifi2': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
     'Wifi3': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0, 12],
     'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
-    'config1': ['Connect to;' + get_ip() + ':3000', 30, 2, 5, 0, 15],
+    'config1': ['Connect to;' + get_ip() + ':3000', 20, 2, 5, 0, 15],
     'comERR1': ['Odoo;communication;failed', 41, 3, 5, 40, 19],
     'comERR2': ['Check;connection;parameters',41, 3, 20, 20, 19],
-    'rfidERR1': ['RFID intrigrity;failed', 5, 2, 35, 0, 20],
-    'rfidERR2': ['Pass;the;card', 48, 3, 45, 48, 20]
 }
 
 menus = {
