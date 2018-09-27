@@ -1,28 +1,20 @@
 import json
-import os, time
-import threading
-
-try:
-    import httplib
-except:
-    import http.client as httplib
-
-try:
-    import RPi.GPIO as GPIO
-except:
-    import RPiSim as GPIO
-
-from .demo_opts import get_device
-from . import MFRC522
-from .reset_lib import is_wifi_active, reset_to_host_mode, update_repo, reboot
-from . import PasBuz
-from . import odoo_xmlrpc
-from .display_drawing import card_drawing, menu, screen_drawing, welcome_msg,\
-    welcome_logo
-
 import logging
+import os
+import threading
+import time
+
+from lib import WORK_DIR
+
+from . import MFRC522, PasBuz, display_drawing
+from .reset_lib import (have_internet, is_wifi_active, reboot,
+                        reset_to_host_mode, update_repo)
+
+import RPi.GPIO as GPIO
 
 _logger = logging.getLogger(__name__)
+
+OLED1106 = display_drawing.DisplayDrawning()
 
 error = False
 card_found = False
@@ -58,23 +50,6 @@ tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
           '+11:00': "Asia/Magadan", '+11:50': "Pacific/Norfolk",
           '+12:00': "Pacific/Auckland", '+12:75': "Pacific/Chatham",
           '+13:00': "Pacific/Apia", '+14:00': "Pacific/Fakaofo"}
-
-global PBuzzer
-PinSignalBuzzer = 13  # Pin to feed the Signal to the Buzzer - Signal Pin
-PinPowerBuzzer = 12  # Pin for the feeding Voltage for the Buzzer - Power Pin
-PBuzzer = PasBuz.PasBuz(PinSignalBuzzer,
-                        PinPowerBuzzer)  # Creating one Instance for our Passive Buzzer
-try:
-    GPIO.setmode(GPIO.BOARD)  # Set's GPIO pins to BCM GPIO numbering
-
-    INPUT_PIN_DOWN = 31  # Pin for the DOWN button
-    GPIO.setup(INPUT_PIN_DOWN, GPIO.IN)  # Set our input pin to be an input
-
-    INPUT_PIN_OK = 29  # Pin for the OK button
-    GPIO.setup(INPUT_PIN_OK, GPIO.IN)  # Set our input pin to be an input
-except:
-    _logger.debug("Avoid GPIO setmode and setup")
-
 
 # Create a function to run when the input is high
 def inputStateDown(channel):
@@ -114,16 +89,7 @@ def print_wifi_config():
     global ap_mode
     while ap_mode:
         _logger.debug("Display AP connection instructions")
-        screen_drawing(device, "Wifi4")
-        time.sleep(4)
-        screen_drawing(device, "1")
-        time.sleep(1)
-        screen_drawing(device, "Wifi1")
-        time.sleep(3)
-        screen_drawing(device, "2")
-        time.sleep(1)
-        screen_drawing(device, "Wifi2")
-        time.sleep(3)
+        OLED1106.wifi_ap_mode_display()
 
 
 def launch_ap_mode():
@@ -151,18 +117,7 @@ def configure_ap_mode():
     _logger.debug("Leaving configure_ap_mode")
 
 
-def have_internet():
-    _logger.debug("check internet connection")
-    conn = httplib.HTTPConnection("www.google.com", timeout=10)
-    try:
-        conn.request("HEAD", "/")
-        _logger.debug("Have internet")
-        conn.close()
-        return True
-    except Exception as e:
-        _logger.debug(e)
-        conn.close()
-        return False
+
 
 
 def scan_card(MIFAREReader, odoo):
@@ -199,7 +154,7 @@ def scan_card(MIFAREReader, odoo):
             "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
         card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
             -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
-                   -1]
+            -1]
 
         _logger.debug(card)
         if card == admin_id:
@@ -220,35 +175,7 @@ def scan_card(MIFAREReader, odoo):
             MIFAREReader.MFRC522_Read(8)
             MIFAREReader.MFRC522_StopCrypto1()
             if odoo:
-                _logger.debug("#################################"
-                              "################################################")
-                _logger.debug("PARAMETERS: " + str(host) + " / " + str(
-                    port) + " / " + str(user_name) + " / " + str(
-                    user_password) + " / " + str(dbname))
-                _logger.debug("##################################"
-                              "###############################################")
-                try:
-                    user_id = odoo_xmlrpc.authenticate_connection(host, port, user_name,
-                        user_password, dbname, https_on)
-                    object_facade = odoo_xmlrpc.connection(host, port, https_on)
-                    res = object_facade.execute(
-                        dbname, user_id, user_password, "hr.employee",
-                        "register_attendance", card)
-                    _logger.debug(res)
-                    msg = res["action"]
-                    _logger.debug("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + msg)
-                    if res["action"] == "check_in":
-                        PBuzzer.CheckIn()  # Acoustic Melody for Check In
-                    if res["action"] == "check_out":
-                        PBuzzer.CheckOut()  # Acoustic Melody for Check Out
-                    if res["action"] == "FALSE":
-                        PBuzzer.BuzError()  # Acoustic Melody for Error - RFID Card is not in Database
-                    error = False
-                except:
-                    _logger.debug("No Odoo connection")
-                    msg = "error1"
-                    error = True
-                time.sleep(1)
+                odoo.check_attendance(card)
             else:
                 error = False
         else:
@@ -264,21 +191,21 @@ def rfid_hr_attendance():
     global error, cnt_found, card_found
     # hour = time.strftime("%H:%M")
     if card_found:
-        screen_drawing(device, msg)
+        OLED1106.screen_drawing(msg)
         cnt_found = cnt_found + 1
         _logger.debug("CNT_FOUND" + str(cnt_found))
         if cnt_found >= 5:
             card_found = False
     else:
         cnt_found = 0
-        screen_drawing(device, "time")
+        OLED1106.screen_drawing("time")
 
     scan_card(MIFAREReader, True)
 
 
 def rfid_reader():
     global card, error
-    card_drawing(device, card)
+    OLED1106.card_drawing(card)
     scan_card(MIFAREReader, False)
 
 
@@ -293,8 +220,10 @@ def back():
     _logger.debug("Back selected")
     turn_off = True
 
+
 def settings():
     _logger.debug("Other settings selected")
+
 
 def updating_repo():
     global updating
@@ -302,12 +231,14 @@ def updating_repo():
     _logger.debug("Update finished")
     updating = False
 
+
 def print_update_repo():
     global updating
     while updating:
         _logger.debug("Display updating firmware")
-        screen_drawing(device, "update")
+        OLED1106.screen_drawing("update")
         time.sleep(4)
+
 
 def update_firmware():
     if have_internet():
@@ -325,13 +256,11 @@ def update_firmware():
         while updating:
             pass
         _logger.debug("Leaving update_firmware and rebooting")
-        screen_drawing(device, "shut_down")
+        OLED1106.screen_drawing("shut_down")
         time.sleep(4)
         reboot()
     else:
         back()
-
-
 
 
 ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
@@ -339,7 +268,6 @@ ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
 
 
 def main():
-    global Image
     global pos
     global enter, turn_off
     global elapsed_time
@@ -347,7 +275,6 @@ def main():
     global host, port, user_name, user_password, dbname
     global admin_id, https_on
     global msg, card, error
-    global device
     global on_Down, on_OK
     start_time = time.time()
 
@@ -368,8 +295,7 @@ def main():
             while enter == False and turn_off == False:
                 elapsed_time = time.time() - start_time
                 if menu_sel == 1:
-                    menu(device, "RFID - Odoo", "RFID reader", "Settings",
-                         "Exit", pos)
+                    OLED1106.display_menu('Main', pos)
                     try:
                         # Check if the OK button is pressed
                         if on_OK != on_OK_old:
@@ -386,8 +312,7 @@ def main():
                     except KeyboardInterrupt:
                         break
                 else:
-                    menu(device, "WiFi Reset", "Update RAS", "Back",
-                         "", pos2)
+                    OLED1106.display_menu('Settings', pos2)
                     try:
                         # Check if the OK button is pressed
                         if on_OK != on_OK_old:
@@ -422,11 +347,14 @@ def main():
                         if pos == 0:
                             _logger.debug("Reading data.json")
                             while not os.path.isfile(
-                                    "/home/pi/ras/dicts/data.json"):
-                                screen_drawing(device, "config1")
+                                    os.path.abspath(
+                                        os.path.join(WORK_DIR, 'dicts/data.json'))):
+                                OLED1106.screen_drawing("config1")
                                 time.sleep(4)
-                            if os.path.isfile("/home/pi/ras/dicts/data.json"):
-                                json_file = open('/home/pi/ras/dicts/data.json')
+                            if os.path.isfile(os.path.abspath(
+                                    os.path.join(WORK_DIR, 'dicts/data.json'))):
+                                json_file = open(os.path.abspath(
+                                    os.path.join(WORK_DIR, 'dicts/data.json')))
                                 json_data = json.load(json_file)
                                 json_file.close()
                                 host = json_data["odoo_host"][0]
@@ -452,8 +380,10 @@ def main():
                             ops[str(pos2 + 4)]()
                             if pos2 == 1:
                                 adm = True
-                        if os.path.isfile("/home/pi/ras/dicts/data.json"):
-                            json_file = open('/home/pi/ras/dicts/data.json')
+                        if os.path.isfile(os.path.abspath(
+                                os.path.join(WORK_DIR, 'dicts/data.json'))):
+                            json_file = open(os.path.abspath(
+                                os.path.join(WORK_DIR, 'dicts/data.json')))
                             json_data = json.load(json_file)
                             json_file.close()
                             admin_id = json_data["admin_id"][0]
@@ -472,25 +402,11 @@ def main():
 
 
 def m_functionality():
-    global device
-    global reset
-    _logger.debug("m_functionality() call")
+    _logger.debug("Starting up RAS")
     try:
-        device = get_device()
-        welcome_logo(device)
-        time.sleep(4)
-        welcome_msg(device, 17)
-        time.sleep(4)
+        OLED1106.initial_display()
         main()
-        if reset:
-            reset = False
-            configure_ap_mode()
-            main()
-        screen_drawing(device, "shut_down")
-        time.sleep(3)
-        screen_drawing(device, " ")
+        OLED1106.shut_down()
         GPIO.cleanup()
-
     except KeyboardInterrupt:
         GPIO.cleanup()
-        pass

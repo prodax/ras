@@ -1,5 +1,7 @@
-import lib.menu as menu
 import logging
+
+import lib.menu as menu
+
 _logger = logging.getLogger(__name__)
 
 if __name__ == '__main__':

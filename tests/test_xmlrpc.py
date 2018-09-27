@@ -1,7 +1,7 @@
 import unittest
 from lib.odoo_xmlrpc import connection, authenticate_connection
 
-class TestStringMethods(unittest.TestCase):
+class TestXmlRPĈ(unittest.TestCase):
 
     def setUp(self):
         self.host = "localhost"

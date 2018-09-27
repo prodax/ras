@@ -68,19 +68,25 @@
         <option value="+13:00">(GMT +13:00) Apia, Nukualofa</option>
         <option value="+14:00">(GMT +14:00) Line Islands, Tokelau</option>
       </select>
+    </fieldset>
+    <fieldset>
       <label for="https">{{ _('Click the checkbox if your Odoo employs HTTPS:') }} </label>
-      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https"></label><br>
+      {%if 'https' in data and data['https'][0] == 'https' %}
+      <input type="checkbox" id="https" value="https" name="https" checked><label class="light" for="https"></label><br>
+      {%else%}
+      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https" ></label><br>
+      {%endif%}
     </fieldset>
     {% else %}
     <h1>{{ _('Configuration portal') }}</h1>
     <fieldset>
       <legend><span class="number">1</span>{{ _('Odoo Parameters') }}</legend>
       <label for="name">{{ _('Odoo Host:') }}</label>
-      <input type="text" id="odoo_host" name="odoo_host">
+      <input type="text" id="odoo_host" name="odoo_host" placeholder="demo.odoo.com">
       <label for="name">{{ _('Port:') }}</label>
-      <input type="text" id="odoo_port" name="odoo_port">
+      <input type="text" id="odoo_port" name="odoo_port" placeholder="8069">
       <label for="user">{{ _('Username:') }}</label>
-      <input type="text" id="user" name="user_name">
+      <input type="text" id="user" name="user_name" placeholder="username@example.com">
       <label for="password">{{ _('Password:') }}</label>
       <input type="password" id="password" name="user_password">
       <label for="db">{{ _('Database:') }}</label>
@@ -130,11 +136,7 @@
         <option value="+14:00">(GMT +14:00) Line Islands, Tokelau</option>
       </select>
       <label for="https">{{ _('Click the checkbox if your Odoo employs HTTPS:') }} </label>
-      {%if data['https'][0] == 'https' %}
-      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https" checked></label><br>
-      {%else%}
-      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https" ></label><br>
-      {%endif%}
+      <input type="checkbox" id="https" value="https" name="https"><label class="light" for="https"></label><br>
     </fieldset>
     {% endif %}
     <fieldset>
