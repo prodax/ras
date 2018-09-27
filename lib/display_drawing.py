@@ -1,209 +1,188 @@
+import logging
 import os
 import time
 
+from PIL import Image, ImageFont
+
+from .demo_opts import get_device
+# from lib import WORK_DIR
 from luma.core.render import canvas
-from PIL import ImageFont
-from PIL import Image
 
 from .reset_lib import get_ip
 
-import logging
-
 _logger = logging.getLogger(__name__)
+
+WORK_DIR = '/home/hveficent/Eficent/RASv2/ras/'
 
 dic = {
     ' ': [" ", 0, 1, 0, 0, 24],
     'check_in': ['CHECKED IN', 6, 1, 0, 0, 22],
-    'check_out': ['CHECKED OUT', 18, 2, 45, 0, 22],
-    'FALSE': ['NOT AUTHORIZED', 45, 2, 8, 0, 20],
-    'shut_down': ['Rebooting', 5, 1, 0, 0, 24],
+    'check_out': ['CHECKED OUT', 2, 1, 0, 0, 20],
+    'FALSE': ['NOT;AUTHORIZED', 45, 2, 10, 0, 18],
+    'shut_down': ['Rebooting', 6, 1, 0, 0, 24],
     '1': ['1', 50, 1, 0, 0, 50],
     '2': ['2', 50, 1, 0, 0, 50],
-    'Wifi1': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
-    'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0, 12],
-    'Wifi3': ['Connect;to;192.168.42.1', 20, 3, 50, 1, 24],
-    'Wifi4': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
+    'Wifi1': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
+    'Wifi2': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
+    'Wifi3': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0, 12],
     'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
-    'config1': ['Connect to;' + get_ip() + ':3000', 35, 2, 25, 0, 15]
+    'config1': ['Connect to;' + get_ip() + ':3000', 30, 2, 5, 0, 15],
+    'comERR1': ['Odoo;communication;failed', 41, 3, 5, 40, 19],
+    'comERR2': ['Check;connection;parameters',41, 3, 20, 20, 19],
+    'rfidERR1': ['RFID intrigrity;failed', 5, 2, 35, 0, 20],
+    'rfidERR2': ['Pass;the;card', 48, 3, 45, 48, 20]
 }
-dicerror = {
-    ' ': [1, " ", 1, 0, 0, 0, 24],
-    'error1': [2, 'Odoo;communication;failed', 3, 41, 5, 40,
-               'Check;the;parameters', 3, 41, 53, 20, 19],
-    'error2': [2, 'RFID;intrigrity;failed', 3, 50, 20, 35,
-               'Pass;the;card', 3, 48, 45, 48, 20]}
+
+menus = {
+    'Main': ["RFID - Odoo", "RFID reader", "Settings", "Exit"],
+    'Settings': ["WiFi Reset", "Update RAS", "Back", ""],
+
+}
 
 
-def menu(device, msg1, msg2, msg3, msg4, loc):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-        '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, 16)
-    with canvas(device) as draw:
-        if loc == 0:
-            draw.rectangle((3, 1, 124, 16), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="black")
-            draw.text((5, 15), msg2, font=font2, fill="white")
-            draw.text((5, 30), msg3, font=font2, fill="white")
-            draw.text((5, 45), msg4, font=font2, fill="white")
-        elif loc == 1:
-            draw.rectangle((3, 17, 124, 30), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="white")
-            draw.text((5, 15), msg2, font=font2, fill="black")
-            draw.text((5, 30), msg3, font=font2, fill="white")
-            draw.text((5, 45), msg4, font=font2, fill="white")
-        elif loc == 2:
-            draw.rectangle((3, 31, 124, 46), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="white")
-            draw.text((5, 15), msg2, font=font2, fill="white")
-            draw.text((5, 30), msg3, font=font2, fill="black")
-            draw.text((5, 45), msg4, font=font2, fill="white")
-        elif loc == 3:
-            draw.rectangle((3, 47, 124, 60), outline="white", fill="white")
-            draw.text((5, 0), msg1, font=font2, fill="white")
-            draw.text((5, 15), msg2, font=font2, fill="white")
-            draw.text((5, 30), msg3, font=font2, fill="white")
-            draw.text((5, 45), msg4, font=font2, fill="black")
+class DisplayDrawning(object):
 
+    def __init__(self):
+        self.font_ttf = os.path.abspath(
+            os.path.join(WORK_DIR, 'fonts/Orkney.ttf'))
+        self.img_path = os.path.abspath(
+            os.path.join(WORK_DIR, 'images'))
+        self.device = get_device()
 
-def screen_drawing(device, info):
-    # use custom font
-    global error, msg
-    font_path = os.path.abspath(os.path.join(
-        '/home/pi/ras/fonts', 'Orkney.ttf'))
-    if 'error' in info:
-        _logger.debug(info)
-        code = info.replace('error', '')
-        font2 = ImageFont.truetype(font_path, dicerror[info][11] - 3)
-        fonte = ImageFont.truetype(font_path, 28)
-        with canvas(device) as draw:
-            # draw.rectangle(device.bounding_box, outline="white")
-            draw.text((17, 5), "ERROR", font=fonte, fill="white")
-            draw.text((14, 37), "CODE " + code, font=fonte, fill="white")
-        time.sleep(2)
-        _logger.debug(str(dicerror[info][0]))
-        for i in range(0, dicerror[info][0] + 1):
-            _logger.debug("FOR: " + str(i))
-            with canvas(device) as draw:
-                # draw.rectangle(device.bounding_box, outline="white")
-                try:
-                    if dicerror[info][0] != i:
-                        if dicerror[info][2 + (i * 5)] == 1:
-                            draw.text((dicerror[info][3 + (i * 5)], 20),
-                                      dicerror[info][1 + (i * 5)],
-                                      font=font2, fill="white")
-                        elif dicerror[info][2 + (i * 5)] == 2:
-                            a, b = dicerror[info][1 + (i * 5)].split(";")
-                            draw.text((dicerror[info][3 + (i * 5)], 10),
-                                      a, font=font2, fill="white")
-                            draw.text((dicerror[info][4 + (i * 5)], 45),
-                                      b, font=font2, fill="white")
-                        else:
-                            a, b, c = dicerror[info][1 + (i * 5)].split(
-                                ";")
-                            draw.text((dicerror[info][3 + (i * 5)], 4), a,
-                                      font=font2, fill="white")
-                            draw.text((dicerror[info][4 + (i * 5)], 23),
-                                      b, font=font2, fill="white")
-                            draw.text((dicerror[info][5 + (i * 5)], 42),
-                                      c, font=font2, fill="white")
-                    _logger.debug("1")
-                    time.sleep(2)
-                    _logger.debug("2")
-                except:
-                    draw.text((20, 20), info, font=font2, fill="white")
-                time.sleep(2)
-        msg = "time"
-    else:
-        if info != "time":
-            font2 = ImageFont.truetype(font_path, dic[info][5] - 2)
-        else:
-            font2 = ImageFont.truetype(font_path, 30)
-        with canvas(device) as draw:
-            # draw.rectangle(device.bounding_box, outline="white")
-            if info == "time":
-                hour = time.strftime("%H:%M", time.localtime())
-                num_ones = hour.count('1')
-                if num_ones == 0:
-                    draw.text((23, 20), hour, font=font2, fill="white")
-                else:
-                    if num_ones == 1:
-                        draw.text((25, 20), hour, font=font2, fill="white")
-                    else:
-                        if num_ones == 2:
-                            draw.text((28, 20), hour, font=font2, fill="white")
-                        else:
-                            if num_ones == 3:
-                                draw.text((31, 20), hour, font=font2,
-                                          fill="white")
-                            else:
-                                draw.text((34, 20), hour, font=font2,
-                                          fill="white")
+    def display_menu(self, menu, loc):
+        m_font = ImageFont.truetype(self.font_ttf, 16)
+        with canvas(self.device) as draw:
+            if loc == 0:
+                draw.rectangle((3, 1, 124, 16), outline="white", fill="white")
+                draw.text((5, 0), menus[menu][0], font=m_font, fill="black")
+                draw.text((5, 15), menus[menu][1], font=m_font, fill="white")
+                draw.text((5, 30), menus[menu][2], font=m_font, fill="white")
+                draw.text((5, 45), menus[menu][3], font=m_font, fill="white")
+            elif loc == 1:
+                draw.rectangle((3, 17, 124, 30), outline="white", fill="white")
+                draw.text((5, 0), menus[menu][0], font=m_font, fill="white")
+                draw.text((5, 15), menus[menu][1], font=m_font, fill="black")
+                draw.text((5, 30), menus[menu][2], font=m_font, fill="white")
+                draw.text((5, 45), menus[menu][3], font=m_font, fill="white")
+            elif loc == 2:
+                draw.rectangle((3, 31, 124, 46), outline="white", fill="white")
+                draw.text((5, 0), menus[menu][0], font=m_font, fill="white")
+                draw.text((5, 15), menus[menu][1], font=m_font, fill="white")
+                draw.text((5, 30), menus[menu][2], font=m_font, fill="black")
+                draw.text((5, 45), menus[menu][3], font=m_font, fill="white")
+            elif loc == 3:
+                draw.rectangle((3, 47, 124, 60), outline="white", fill="white")
+                draw.text((5, 0), menus[menu][0], font=m_font, fill="white")
+                draw.text((5, 15), menus[menu][1], font=m_font, fill="white")
+                draw.text((5, 30), menus[menu][2], font=m_font, fill="white")
+                draw.text((5, 45), menus[menu][3], font=m_font, fill="black")
+
+    def _display_time(self):
+        with canvas(self.device) as draw:
+            d_font = ImageFont.truetype(self.font_ttf, 30)
+
+            hour = time.strftime("%H:%M", time.localtime())
+            num_ones = hour.count('1')
+            if num_ones == 0:
+                draw.text((23, 20), hour, font=d_font, fill="white")
             else:
-                try:
-                    if dic[info][2] == 1:
-                        draw.text((dic[info][1],
-                                   22 + (24 - dic[info][5]) / 2),
-                                  dic[info][0], font=font2, fill="white")
-                    elif dic[info][2] == 2:
-                        a, b = dic[info][0].split(";")
-                        draw.text((dic[info][1],
-                                   10 + (24 - dic[info][5]) / 2), a,
-                                  font=font2, fill="white")
-                        draw.text((dic[info][3],
-                                   37 + (24 - dic[info][5]) / 2), b,
-                                  font=font2, fill="white")
+                if num_ones == 1:
+                    draw.text((25, 20), hour, font=d_font, fill="white")
+                else:
+                    if num_ones == 2:
+                        draw.text((28, 20), hour, font=d_font, fill="white")
                     else:
-                        a, b, c = dic[info][0].split(";")
-                        draw.text((dic[info][1],
-                                   2 + (24 - dic[info][5]) / 2), a,
-                                  font=font2, fill="white")
-                        draw.text((dic[info][3],
-                                   22 + (24 - dic[info][5]) / 2), b,
-                                  font=font2, fill="white")
-                        draw.text((dic[info][4],
-                                   37 + (24 - dic[info][5]) / 2), c,
-                                  font=font2, fill="white")
-                except:
-                    draw.text((20, 20), info, font=font2, fill="white")
+                        if num_ones == 3:
+                            draw.text((31, 20), hour, font=d_font,
+                                      fill="white")
+                        else:
+                            draw.text((34, 20), hour, font=d_font,
+                                      fill="white")
 
+    def _display_msg(self, info):
+        with canvas(self.device) as draw:
+            d_font = ImageFont.truetype(self.font_ttf, dic[info][5] - 2)
+            try:
+                if dic[info][2] == 1:
+                    draw.text((dic[info][1],
+                               22 + (24 - dic[info][5]) / 2),
+                              dic[info][0], font=d_font, fill="white")
+                elif dic[info][2] == 2:
+                    a, b = dic[info][0].split(";")
+                    draw.text((dic[info][1],
+                               10 + (24 - dic[info][5]) / 2), a,
+                              font=d_font, fill="white")
+                    draw.text((dic[info][3],
+                               37 + (24 - dic[info][5]) / 2), b,
+                              font=d_font, fill="white")
+                else:
+                    a, b, c = dic[info][0].split(";")
+                    draw.text((dic[info][1],
+                               2 + (24 - dic[info][5]) / 2), a,
+                              font=d_font, fill="white")
+                    draw.text((dic[info][3],
+                               22 + (24 - dic[info][5]) / 2), b,
+                              font=d_font, fill="white")
+                    draw.text((dic[info][4],
+                               37 + (24 - dic[info][5]) / 2), c,
+                              font=d_font, fill="white")
+            except:
+                draw.text((20, 20), info, font=d_font, fill="white")
 
-def card_drawing(device, id):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-        '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, 22)
+    def screen_drawing(self, info):
+            if info == "time":
+                self._display_time()
+            else:
+                self._display_msg(info)
 
-    with canvas(device) as draw:
-        # draw.rectangle(device.bounding_box, outline="white")
-        try:
-            draw.text(15, 20, id, font=font2, fill="white")
-        except:
-            draw.text((15, 20), id, font=font2, fill="white")
+    def card_drawing(self, card_id):
+        c_font = ImageFont.truetype(self.font_ttf, 22)
+        with canvas(self.device) as draw:
+            try:
+                draw.text(15, 20, card_id, font=c_font, fill="white")
+            except:
+                draw.text((15, 20), card_id, font=c_font, fill="white")
 
-def welcome_msg(device, size):
-    # use custom font
-    font_path = os.path.abspath(os.path.join(
-        '/home/pi/ras/fonts', 'Orkney.ttf'))
-    font2 = ImageFont.truetype(font_path, size - 3)
-    with canvas(device) as draw:
-        # draw.rectangle(device.bounding_box, outline="white")
-        draw.text((15, 10), "Welcome to the", font=font2, fill="white")
-        draw.text((50, 28), "RFID", font=font2, fill="white")
-        draw.text((1, 43), "Attendance system", font=font2, fill="white")
-    time.sleep(0.5)
+    def _welcome_msg(self):
+        # use custom font
+        w_font = ImageFont.truetype(self.font_ttf, 14)
+        with canvas(self.device) as draw:
+            # draw.rectangle(self.device.bounding_box, outline="white")
+            draw.text((15, 10), "Welcome to the", font=w_font, fill="white")
+            draw.text((50, 28), "RFID", font=w_font, fill="white")
+            draw.text((1, 43), "Attendance system", font=w_font, fill="white")
 
+    def _welcome_logo(self):
+        logo = Image.open(os.path.abspath(
+            os.path.join(self.img_path, 'eficent.png'))).convert("RGBA")
+        fff = Image.new(logo.mode, logo.size, (0,) * 4)
 
-def welcome_logo(device):
-    img_path = os.path.abspath(os.path.join(
-        '/home/pi/ras/images', 'eficent.png'))
-    logo = Image.open(img_path).convert("RGBA")
-    fff = Image.new(logo.mode, logo.size, (0,) * 4)
+        background = Image.new("RGBA", self.device.size, "black")
+        posn = ((self.device.width - logo.width) // 2, 0)
 
-    background = Image.new("RGBA", device.size, "black")
-    posn = ((device.width - logo.width) // 2, 0)
+        img = Image.composite(logo, fff, logo)
+        background.paste(img, posn)
+        self.device.display(background.convert(self.device.mode))
 
-    img = Image.composite(logo, fff, logo)
-    background.paste(img, posn)
-    device.display(background.convert(device.mode))
-    time.sleep(0.5)
+    def initial_display(self):
+        self._welcome_logo()
+        time.sleep(4)
+        self._welcome_msg()
+        time.sleep(4)
+
+    def shut_down(self):
+        self._display_msg("shut_down")
+        time.sleep(3)
+        self._display_msg(" ")
+
+    def wifi_ap_mode_display(self):
+        self._display_msg("Wifi1")
+        time.sleep(4)
+        self._display_msg("1")
+        time.sleep(1)
+        self._display_msg("Wifi2")
+        time.sleep(3)
+        self._display_msg("2")
+        time.sleep(1)
+        self._display_msg("Wifi3")
+        time.sleep(3)

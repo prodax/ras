@@ -1,6 +1,10 @@
+import http.client as httplib
+import logging
 import os
-import subprocess
 import socket
+import subprocess
+
+_logger = logging.getLogger(__name__)
 
 
 def is_wifi_active():
@@ -11,6 +15,7 @@ def is_wifi_active():
         wifi_active = False
 
     return wifi_active
+
 
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -24,15 +29,31 @@ def get_ip():
         s.close()
     return IP
 
+
 def reset_to_host_mode():
     os.system('sudo wifi-connect --portal-ssid "RFID Attendance System"')
 
 
 def update_repo():
-	os.chdir('/home/pi/ras')
-	os.system("sudo git fetch origin master")
-	os.system('sudo git reset --hard origin/master')
+    os.chdir('/home/pi/ras')
+    os.system("sudo git fetch origin master")
+    os.system('sudo git reset --hard origin/master')
+
 
 def reboot():
-	print("rebooting")
-	os.system('sudo reboot')
+    print("rebooting")
+    os.system('sudo reboot')
+
+
+def have_internet():
+    _logger.debug("check internet connection")
+    conn = httplib.HTTPConnection("www.google.com", timeout=10)
+    try:
+        conn.request("HEAD", "/")
+        _logger.debug("Have internet")
+        conn.close()
+        return True
+    except Exception as e:
+        _logger.debug(e)
+        conn.close()
+        return False

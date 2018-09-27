@@ -1,0 +1,10 @@
+version: "2.1"
+services:
+  flask:
+    build: .
+    restart: always
+    hostname: flask
+    volumes:
+      - .:/home/pi/ras
+    ports:
+    - "3000:3000"

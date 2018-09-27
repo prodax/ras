@@ -1,8 +1,7 @@
-import sys
 import logging
+import sys
 
 from luma.core import cmdline, error
-
 
 # logging
 logging.basicConfig(
