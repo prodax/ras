@@ -366,22 +366,22 @@ def main():
                 while adm is False and turn_off is False:
                     try:
                         if pos == 0:
-                            while not odoo or odoo.uid is False:
+                            while not odoo:
+                                _logger.debug("No Odoo connection available")
+                                while not os.path.isfile(
+                                    os.path.abspath(
+                                        os.path.join(
+                                            WORK_DIR, 'dicts/data.json'))):
+                                    _logger.debug("No data.json available")
+                                    OLED1106.screen_drawing("config1")
+                                odoo = instance_connection()
                                 if odoo.uid is False:
                                     OLED1106.screen_drawing("comERR1")
                                     time.sleep(3)
                                     OLED1106.screen_drawing("comERR2")
                                     time.sleep(3)
-                                    del odoo
+                                    odoo = False
                                     OLED1106.screen_drawing("config1")
-                                _logger.debug("No Odoo connection available")
-                                while not os.path.isfile(
-                                        os.path.abspath(
-                                            os.path.join(WORK_DIR,
-                                                         'dicts/data.json'))):
-                                    _logger.debug("No data.json available")
-                                    OLED1106.screen_drawing("config1")
-                                odoo = instance_connection()
                         else:
                             _logger.debug("POS " + str(pos))
                         if flag_m == 0:
