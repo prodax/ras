@@ -11,24 +11,27 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
-dic = {' ': [" ", 0, 1, 0, 0, 24],
-          'check_in': ['CHECKED IN', 6, 1, 0, 0, 22],
-          'check_out': ['CHECKED OUT', 18, 2, 45, 0, 22],
-          'FALSE': ['NOT AUTHORIZED', 45, 2, 8, 0, 20],
-          'shut_down': ['Rebooting', 5, 1, 0, 0, 24], 
-          '1': ['1', 50, 1, 0, 0, 50],
-          '2': ['2', 50, 1, 0, 0, 50],
-          'Wifi1': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
-          'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0,
-                    12], 'Wifi3': ['Connect;to;192.168.42.1', 20, 3, 50, 1, 24],
-          'Wifi4': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
-          'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
-          'config1': ['Connect to;' + get_ip() + ':3000', 35, 3, 25, 0, 15]}
-dicerror = {' ': [1, " ", 1, 0, 0, 0, 24],
-               'error1': [2, 'Odoo;communication;failed', 3, 41, 5, 40,
-                          'Check;the;parameters', 3, 41, 53, 20, 19],
-               'error2': [2, 'RFID;intrigrity;failed', 3, 50, 20, 35,
-                          'Pass;the;card', 3, 48, 45, 48, 20]}
+dic = {
+    ' ': [" ", 0, 1, 0, 0, 24],
+    'check_in': ['CHECKED IN', 6, 1, 0, 0, 22],
+    'check_out': ['CHECKED OUT', 18, 2, 45, 0, 22],
+    'FALSE': ['NOT AUTHORIZED', 45, 2, 8, 0, 20],
+    'shut_down': ['Rebooting', 5, 1, 0, 0, 24],
+    '1': ['1', 50, 1, 0, 0, 50],
+    '2': ['2', 50, 1, 0, 0, 50],
+    'Wifi1': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
+    'Wifi2': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0, 12],
+    'Wifi3': ['Connect;to;192.168.42.1', 20, 3, 50, 1, 24],
+    'Wifi4': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
+    'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
+    'config1': ['Connect to;' + get_ip() + ':3000', 35, 2, 25, 0, 15]
+}
+dicerror = {
+    ' ': [1, " ", 1, 0, 0, 0, 24],
+    'error1': [2, 'Odoo;communication;failed', 3, 41, 5, 40,
+               'Check;the;parameters', 3, 41, 53, 20, 19],
+    'error2': [2, 'RFID;intrigrity;failed', 3, 50, 20, 35,
+               'Pass;the;card', 3, 48, 45, 48, 20]}
 
 
 def menu(device, msg1, msg2, msg3, msg4, loc):
@@ -190,9 +193,10 @@ def welcome_msg(device, size):
         draw.text((1, 43), "Attendance system", font=font2, fill="white")
     time.sleep(0.5)
 
+
 def welcome_logo(device):
     img_path = os.path.abspath(os.path.join(
-            '/home/pi/ras/images', 'eficent.png'))
+        '/home/pi/ras/images', 'eficent.png'))
     logo = Image.open(img_path).convert("RGBA")
     fff = Image.new(logo.mode, logo.size, (0,) * 4)
 

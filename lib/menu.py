@@ -37,7 +37,6 @@ enter = False
 reset = False
 on_Down = False
 on_OK = False
-update = False
 ap_mode = False
 
 tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
@@ -344,7 +343,7 @@ def main():
     global pos
     global enter, turn_off
     global elapsed_time
-    global adm, update
+    global adm
     global host, port, user_name, user_password, dbname
     global admin_id, https_on
     global msg, card, error
@@ -359,14 +358,14 @@ def main():
         pos2 = 0
         menu_sel = 1
 
-        while adm == True and update == False:
+        while adm:
             msg = " "
             card = " "
             error = False
             adm = False
             flag_m = 0
             # MENU
-            while enter == False and turn_off == False and update == False:
+            while enter == False and turn_off == False:
                 elapsed_time = time.time() - start_time
                 if menu_sel == 1:
                     menu(device, "RFID - Odoo", "RFID reader", "Settings",
@@ -417,7 +416,7 @@ def main():
                     menu_sel = 2
                 else:
                     menu_sel = 1
-                while reset == False and adm == False and turn_off == False and update == False:
+                while reset == False and adm == False and turn_off == False:
                     try:
                         elapsed_time = time.time() - start_time
                         if pos == 0:
@@ -443,14 +442,6 @@ def main():
                                     https_on = False
                                 else:
                                     https_on = True
-
-                                if "update" not in json_data:
-                                    update = False
-                                else:
-                                    update = True
-                                    _logger.debug(
-                                        "THIS IS UPDATE: " + str(update))
-                                # reset_lib.test_connection(host, port, user_name, user_password, dbname)
                             else:
                                 raise ValueError("It is not a file!")
                         else:
@@ -466,10 +457,6 @@ def main():
                             json_data = json.load(json_file)
                             json_file.close()
                             admin_id = json_data["admin_id"][0]
-                            if "update" not in json_data:
-                                update = False
-                            else:
-                                update = True
                         if adm:
                             _logger.debug(str(adm))
                     except KeyboardInterrupt:
@@ -486,7 +473,6 @@ def main():
 
 def m_functionality():
     global device
-    global update
     global reset
     _logger.debug("m_functionality() call")
     try:
@@ -496,11 +482,6 @@ def m_functionality():
         welcome_msg(device, 17)
         time.sleep(4)
         main()
-        if update:
-            screen_drawing(device, "update")
-            time.sleep(2)
-            screen_drawing(device, " ")
-            GPIO.cleanup()
         if reset:
             reset = False
             configure_ap_mode()
@@ -509,7 +490,6 @@ def m_functionality():
         time.sleep(3)
         screen_drawing(device, " ")
         GPIO.cleanup()
-        return update
 
     except KeyboardInterrupt:
         GPIO.cleanup()
