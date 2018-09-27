@@ -257,7 +257,10 @@ def rfid_reader():
 def reset_settings():
     global reset
     _logger.debug("Reset Settings selected")
-    reset = True
+    configure_ap_mode()
+    reset = False
+    main()
+    
 
 
 def back():
