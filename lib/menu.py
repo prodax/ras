@@ -85,8 +85,9 @@ def instance_connection():
             https_on = False
         else:
             https_on = True
-        return odoo_xmlrpc.OdooXmlRPC(host, port, https_on, dbname, user_name,
+            odoo = odoo_xmlrpc.OdooXmlRPC(host, port, https_on, dbname, user_name,
                                       user_password)
+        return odoo
     else:
         return False
 
