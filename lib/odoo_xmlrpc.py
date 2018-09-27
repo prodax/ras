@@ -28,14 +28,17 @@ class OdooXmlRPC(object):
     def _get_user_id(self):
         _logger.debug("Validating Connection to Odoo via XMLRPC")
         login_facade = self._get_object_facade('common')
-        user_id = login_facade.login(self.db, self.user, self.pswd)
-        if user_id:
-            _logger.debug(
-                "Odoo Connection succed on XMLRPC user %s", str(user_id))
-            return user_id
-        _logger.debug("Odoo Connection can't return user_id")
-        return False
-
+        try:
+            user_id = login_facade.login(self.db, self.user, self.pswd)
+            if user_id:
+                _logger.debug(
+                    "Odoo Connection succed on XMLRPC user %s", str(user_id))
+                return user_id
+            _logger.debug("Odoo Connection can't return user_id")
+            return False
+        except:
+            _logger.debug("Odoo Connection can't return user_id")
+            return False
 
     def check_attendance(self, card):
         try:
