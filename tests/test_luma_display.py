@@ -1,6 +1,6 @@
 import time
 
-from lib.display_drawing import DisplayDrawning, dic, menus
+from ras.lib.display_drawing import DisplayDrawning, dic, menus
 
 
 def test_display_messages(device):

@@ -1,7 +1,7 @@
 import unittest
-from lib.odoo_xmlrpc import OdooXmlRPC
+from ras.lib.odoo_xmlrpc import OdooXmlRPC
 
-class TestXmlRPĈ(unittest.TestCase):
+class TestXmlRPC(unittest.TestCase):
 
     def setUp(self):
         host = "localhost"

@@ -1,4 +1,4 @@
-from lib import PasBuz
+from ras.lib import PasBuz
 import time
 
 if __name__ == '__main__':
