@@ -11,7 +11,6 @@
 			<div class="app-title">
 				<h1>{{ _('Log in') }}</h1>
 			</div>
-
 			<div class="login-form">
 				<div class="control-group">
 					<input type="text" class="login-field" value="" placeholder="{{ _('username') }}" name="username">
@@ -26,15 +25,6 @@
 				<button type="submit" name="Log in" value="Log in" class="btn btn-primary btn-large btn-block">{{ _('Log in') }}</button>
 				<button type="submit" name="Reset credentials" value="Reset credentials" class="btn btn-primary btn-large btn-block">{{
 					_('Reset Credentials') }}</button>
-				<button type="submit" name="Change language" value="Change language" class="btn btn-primary btn-large btn-block">{{
-					_('Change language') }}</button>
-				<div class="control-group">
-					<label color="red" for="language">{{ _('Language:') }}</label>
-					<select name="language" form="loginform">
-						<option value="en">{{ _('English') }}</option>
-						<option value="es">{{ _('Spanish') }}</option>
-					</select>
-				</div>
 			</div>
 		</div>
 	</div>
