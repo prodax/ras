@@ -30,6 +30,9 @@ dic = {
     'comERR2': ['Check;connection;parameters',41, 3, 20, 20, 19],
 }
 
+def update_ip():
+    dic['config1'] = eval(dic['config1'])
+
 menus = {
     'Main': ["RFID - Odoo", "RFID reader", "Settings", "Exit"],
     'Settings': ["WiFi Reset", "Update RAS", "Back", ""],

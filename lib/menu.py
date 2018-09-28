@@ -8,7 +8,7 @@ import RPi.GPIO as GPIO
 
 from lib import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
 from lib.reset_lib import (have_internet, is_wifi_active, reboot,
-                        reset_to_host_mode, update_repo, run_tests)
+                           reset_to_host_mode, update_repo, run_tests)
 
 _logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ card_found = False
 cnt_found = 0
 admin_id = "FFFFFFFF"
 turn_off = False
-adm = True
+on_menu = True
 pos = 0
 enter = False
 on_Down = False
@@ -86,7 +86,7 @@ def instance_connection():
             https_on = True
         _logger.debug('Instancing OdooXmlRPC')
         odoo = odoo_xmlrpc.OdooXmlRPC(host, port, https_on, dbname, user_name,
-                                    user_password)
+                                      user_password)
         return odoo
     else:
         _logger.debug('data.json not found')
@@ -139,9 +139,8 @@ def launch_ap_mode():
 
 
 def configure_ap_mode():
-    global ap_mode, adm
+    global ap_mode, on_menu
     ap_mode = True
-    adm = True
     _logger.debug("Starting Wifi Connect")
     try:
         thread1 = threading.Thread(target=print_wifi_config)
@@ -154,13 +153,14 @@ def configure_ap_mode():
     while ap_mode:
         pass
     _logger.debug("Leaving configure_ap_mode")
+    on_menu  = True
 
 
 def scan_card(MIFAREReader, odoo):
     global card
     global card_found
     global msg
-    global adm, turn_off
+    global on_menu, turn_off
 
     # Scan for cards
     (status, TagType) = MIFAREReader.MFRC522_Request(MIFAREReader.PICC_REQIDL)
@@ -181,11 +181,11 @@ def scan_card(MIFAREReader, odoo):
             "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
         card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
             -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
-                   -1]
+            -1]
 
         _logger.debug(card)
         if card == admin_id:
-            adm = True
+            on_menu = True
             # turn_off = True
         # This is the default key for authentication
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -241,7 +241,6 @@ def reset_settings():
     main()
 
 
-
 def back():
     global turn_off
     _logger.debug("Back selected")
@@ -294,109 +293,103 @@ ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
        '4': reset_settings, '5': update_firmware}
 
 
+def select_menu(menu_sel, pos):
+
+    on_Down_old = False
+    on_OK_old = False
+
+    if menu_sel == 1:
+        OLED1106.display_menu('Main', pos)
+        try:
+            # Check if the OK button is pressed
+            if on_OK != on_OK_old:
+                enter = True
+                on_OK_old = on_OK
+            else:
+                enter = False
+            # Check if the DOWN button is pressed
+            if on_Down != on_Down_old:
+                pos = pos + 1
+                if pos > 3:
+                    pos = 0
+                on_Down_old = on_Down
+        except KeyboardInterrupt:
+            _logger.debug("KeyboardInterrupt")
+            raise KeyboardInterrupt
+    elif menu_sel == 2:
+        OLED1106.display_menu('Settings', pos)
+        try:
+            # Check if the OK button is pressed
+            if on_OK != on_OK_old:
+                enter = True
+                on_OK_old = on_OK
+            else:
+                enter = False
+            # Check if the DOWN button is pressed
+            if on_Down != on_Down_old:
+                pos = pos + 1
+                if pos > 2:
+                    pos = 0
+                on_Down_old = on_Down
+        except KeyboardInterrupt:
+            _logger.debug("KeyboardInterrupt on buttons")
+    else:
+        enter = True
+    return enter, menu_sel, pos
+
+
 def main():
-    global pos
     global enter, turn_off
-    global adm
+    global on_menu
     global msg, card
-    global on_Down, on_OK
     global odoo
 
     if have_internet():
 
-        on_Down_old = False
-        on_OK_old = False
-        pos2 = 0
         menu_sel = 1
+        pos = 0
 
-        while adm:
+        while not turn_off:
             msg = " "
             card = " "
-            adm = False
-            flag_m = 0
-            # MENU
-            while enter is False and turn_off is False:
-                if menu_sel == 1:
-                    OLED1106.display_menu('Main', pos)
-                    try:
-                        # Check if the OK button is pressed
-                        if on_OK != on_OK_old:
-                            enter = True
-                            on_OK_old = on_OK
-                        else:
-                            enter = False
-                        # Check if the DOWN button is pressed
-                        if on_Down != on_Down_old:
-                            pos = pos + 1
-                            if pos > 3:
-                                pos = 0
-                            on_Down_old = on_Down
-                    except KeyboardInterrupt:
-                        break
-                else:
-                    OLED1106.display_menu('Settings', pos2)
-                    try:
-                        # Check if the OK button is pressed
-                        if on_OK != on_OK_old:
-                            enter = True
-                            if pos2 == 2:
-                                adm = True
-                                pos = 0
-                            else:
-                                flag_m = 1
-                            on_OK_old = on_OK
-                        else:
-                            enter = False
-                        # Check if the DOWN button is pressed
-                        if on_Down != on_Down_old:
-                            pos2 = pos2 + 1
-                            if pos2 > 2:
-                                pos2 = 0
-                            on_Down_old = on_Down
-                    except KeyboardInterrupt:
-                        break
+
+            while enter is False and on_menu:
+                enter, menu_sel, pos = select_menu(menu_sel, pos)
             # CHOSEN FUNCTIONALITY
             if enter:
                 enter = False
-                if pos == 2:
-                    adm = True
+                on_menu = False
+                if menu_sel == 1 and pos == 2:
                     menu_sel = 2
+                    pos = 0
+                    on_menu = True
+                # TODO Add more move between menus functions
+                elif menu_sel == 1 and pos == 0:
+                    while not odoo:
+                        _logger.debug("No Odoo connection available")
+                        while not os.path.isfile(
+                            os.path.abspath(
+                                os.path.join(
+                                    WORK_DIR, 'dicts/data.json'))):
+                            _logger.debug("No data.json available")
+
+                            OLED1106.screen_drawing("config1")
+                            time.sleep(5)
+                        odoo = instance_connection()
+                        if odoo.uid is False:
+                            OLED1106.screen_drawing("comERR1")
+                            time.sleep(3)
+                            OLED1106.screen_drawing("comERR2")
+                            time.sleep(3)
+                            odoo = False
+                            OLED1106._display_msg("config1")
                 else:
-                    menu_sel = 1
-                while adm is False and turn_off is False:
-                    try:
-                        if pos == 0:
-                            while not odoo:
-                                _logger.debug("No Odoo connection available")
-                                while not os.path.isfile(
-                                    os.path.abspath(
-                                        os.path.join(
-                                            WORK_DIR, 'dicts/data.json'))):
-                                    _logger.debug("No data.json available")
-                                    OLED1106.screen_drawing("config1")
-                                odoo = instance_connection()
-                                if odoo.uid is False:
-                                    OLED1106.screen_drawing("comERR1")
-                                    time.sleep(3)
-                                    OLED1106.screen_drawing("comERR2")
-                                    time.sleep(3)
-                                    odoo = False
-                                    OLED1106.screen_drawing("config1")
-                        else:
-                            _logger.debug("POS " + str(pos))
-                        if flag_m == 0:
-                            ops[str(pos)]()  # rfid_hr_attendance()
-                        else:
-                            ops[str(pos2 + 4)]()
-                            if pos2 == 1:
-                                adm = True
-                        if adm:
-                            _logger.debug(str(adm))
-                    except KeyboardInterrupt:
-                        break
-                pos = 0
-                _logger.debug("on_OK_old: " + str(on_OK_old))
-                _logger.debug("on_OK: " + str(on_OK))
+                    pass
+            if not on_menu:
+                if menu_sel == 1:
+                    ops[str(pos)]()  # rfid_hr_attendance()
+                elif menu_sel == 2:
+                    ops[str(pos + 4)]()
 
     else:
         if not is_wifi_active():
@@ -412,4 +405,5 @@ def m_functionality():
         OLED1106.shut_down()
         GPIO.cleanup()
     except KeyboardInterrupt:
+        _logger.debug("KeyboardInterrupt")
         GPIO.cleanup()
