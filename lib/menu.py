@@ -26,6 +26,8 @@ on_Down = False
 on_OK = False
 ap_mode = False
 
+odoo = False
+
 on_Down_old = False
 on_OK_old = False
 
@@ -64,32 +66,6 @@ GPIO.setup(INPUT_PIN_OK, GPIO.IN)  # Set our input pin to be an input
 
 OLED1106 = display_drawing.DisplayDrawning()
 
-# Create a function to run when the input is high
-def inputStateDown(channel):
-    global on_Down
-    if on_Down is False:
-        _logger.debug('Down Pressed')
-        on_Down = True
-    else:
-        on_Down = False
-
-
-def inputStateOK(channel):
-    global on_OK
-    if on_OK is False:
-        _logger.debug('OK Pressed')
-        on_OK = True
-    else:
-        on_OK = False
-
-
-GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
-                      bouncetime=200)
-GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
-                      bouncetime=200)
-
-# Create an object of the class MFRC522
-MIFAREReader = MFRC522.MFRC522()
 
 def instance_connection():
     global admin_id
@@ -121,7 +97,33 @@ def instance_connection():
         return False
 
 
-odoo = instance_connection()
+# Create a function to run when the input is high
+def inputStateDown(channel):
+    global on_Down
+    if on_Down is False:
+        _logger.debug('Down Pressed')
+        on_Down = True
+    else:
+        on_Down = False
+
+
+def inputStateOK(channel):
+    global on_OK
+    if on_OK is False:
+        _logger.debug('OK Pressed')
+        on_OK = True
+    else:
+        on_OK = False
+
+
+GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
+                      bouncetime=200)
+GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
+                      bouncetime=200)
+
+# Create an object of the class MFRC522
+MIFAREReader = MFRC522.MFRC522()
+
 
 def print_wifi_config():
     global ap_mode
@@ -367,29 +369,28 @@ def main():
                     menu_sel = 1
                     pos = 0
                     on_menu = True
+            if menu_sel == 1 and pos == 0:
+                while not odoo:
+                    _logger.debug("No Odoo connection available")
+                    while not os.path.isfile(
+                        os.path.abspath(
+                            os.path.join(
+                                WORK_DIR, 'dicts/data.json'))):
+                        _logger.debug("No data.json available")
+                        OLED1106.screen_drawing("config1")
+                        time.sleep(5)
+                    odoo = instance_connection()
+                while odoo.uid is False:
+                    OLED1106.screen_drawing("comERR1")
+                    time.sleep(3)
+                    OLED1106.screen_drawing("comERR2")
+                    time.sleep(3)
+                    OLED1106._display_msg("config1")
+                    time.sleep(3)
+                    odoo = instance_connection()
+            else:
                 # TODO Add more move between menus functions
-                elif menu_sel == 1 and pos == 0:
-                    while not odoo:
-                        _logger.debug("No Odoo connection available")
-                        while not os.path.isfile(
-                            os.path.abspath(
-                                os.path.join(
-                                    WORK_DIR, 'dicts/data.json'))):
-                            _logger.debug("No data.json available")
-                            OLED1106.screen_drawing("config1")
-                            time.sleep(5)
-                        odoo = instance_connection()
-                    while odoo.uid is False:
-                        OLED1106.screen_drawing("comERR1")
-                        time.sleep(3)
-                        OLED1106.screen_drawing("comERR2")
-                        time.sleep(3)
-                        del odoo
-                        OLED1106._display_msg("config1")
-                        time.sleep(3)
-                        odoo = instance_connection()
-                else:
-                    pass
+                pass
             if not on_menu:
                 if menu_sel == 1:
                     ops[str(pos)]()  # rfid_hr_attendance()
@@ -402,7 +403,7 @@ def main():
             main()
 
 
-if __name__ == '__main__':
+def m_functionality():
     _logger.debug("Starting up RAS")
     try:
         OLED1106.initial_display()
