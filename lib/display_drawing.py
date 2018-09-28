@@ -25,9 +25,8 @@ dic = {
     'Wifi2': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
     'Wifi3': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0, 12],
     'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
-    'config1': ['Connect to;' + get_ip() + ':3000', 20, 2, 5, 0, 15],
     'comERR1': ['Odoo;communication;failed', 41, 3, 5, 40, 19],
-    'comERR2': ['Check;connection;parameters',41, 3, 20, 20, 19],
+    'comERR2': ['Check;connection;parameters', 41, 3, 20, 20, 19],
 }
 
 menus = {
@@ -123,13 +122,23 @@ class DisplayDrawning(object):
                                37 + (24 - dic[info][5]) / 2), c,
                               font=d_font, fill="white")
             except:
-                draw.text((20, 20), info, font=d_font, fill="white")
+                draw.text((5, 20),'error display: '+info, font=d_font, fill="white")
+
+    def _display_ip(self):
+        with canvas(self.device) as draw:
+            d_font = ImageFont.truetype(self.font_ttf, 13)
+            try:
+                a, b = str('Connect to;' + get_ip() + ':3000').split(";")
+                draw.text((20,14.5), a, font=d_font, fill="white")
+                draw.text((5,41.5), b, font=d_font, fill="white")
+            except Exception:
+                raise Exception
 
     def screen_drawing(self, info):
-            if info == "time":
-                self._display_time()
-            else:
-                self._display_msg(info)
+        if info == "time":
+            self._display_time()
+        else:
+            self._display_msg(info)
 
     def card_drawing(self, card_id):
         c_font = ImageFont.truetype(self.font_ttf, 22)

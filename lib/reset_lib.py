@@ -23,7 +23,7 @@ def get_ip():
         # doesn't even have to be reachable
         s.connect(('8.8.8.8', 80))
         IP = s.getsockname()[0]
-    except Exception:
+    except:
         IP = 'not determined'
         wifi = is_wifi_active()
         while not wifi:

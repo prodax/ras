@@ -377,7 +377,7 @@ def main():
                             os.path.join(
                                 WORK_DIR, 'dicts/data.json'))):
                         _logger.debug("No data.json available")
-                        OLED1106.screen_drawing("config1")
+                        OLED1106._display_ip()
                         time.sleep(5)
                     odoo = instance_connection()
                 while odoo.uid is False:
@@ -385,7 +385,7 @@ def main():
                     time.sleep(3)
                     OLED1106.screen_drawing("comERR2")
                     time.sleep(3)
-                    OLED1106._display_msg("config1")
+                    OLED1106._display_ip()
                     time.sleep(3)
                     odoo = instance_connection()
             else:
