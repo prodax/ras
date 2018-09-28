@@ -243,7 +243,7 @@ def reset_settings():
     main()
 
 
-def back():
+def turn_off():
     global turn_off
     _logger.debug("Back selected")
     turn_off = True
@@ -284,15 +284,13 @@ def update_firmware():
         while updating:
             pass
         _logger.debug("Leaving update_firmware and rebooting")
-        GPIO.cleanup()
-        run_tests()
         OLED1106.screen_drawing("shut_down")
-        time.sleep(4)
+        time.sleep(1)
         reboot()
 
 
-ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
-       '4': reset_settings, '5': update_firmware}
+ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': turn_off,
+       '4': reset_settings, '5': update_firmware, '6': reboot}
 
 
 def select_menu(menu_sel, pos):
@@ -361,8 +359,14 @@ def main():
             if enter:
                 enter = False
                 on_menu = False
+                # GO TO SETTINGS
                 if menu_sel == 1 and pos == 2:
                     menu_sel = 2
+                    pos = 0
+                    on_menu = True
+                # BACK FROM SETTINGS
+                elif menu_sel == 2 and pos == 3:
+                    menu_sel = 1
                     pos = 0
                     on_menu = True
                 # TODO Add more move between menus functions

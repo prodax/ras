@@ -31,9 +31,8 @@ dic = {
 }
 
 menus = {
-    'Main': ["RFID - Odoo", "RFID reader", "Settings", "Exit"],
-    'Settings': ["WiFi Reset", "Update RAS", "Back", ""],
-
+    'Main': ["RFID - Odoo", "RFID reader", "Settings", "Turn off"],
+    'Settings': ["WiFi Reset", "Update RAS", "Reboot", "Back"],
 }
 
 
