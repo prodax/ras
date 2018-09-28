@@ -4,3 +4,5 @@
 __pycache__
 dicts/credentials.json
 dicts/data.json
+tests
+run_tests.sh
