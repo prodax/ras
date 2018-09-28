@@ -243,7 +243,7 @@ def reset_settings():
     main()
 
 
-def turn_off():
+def shutdown():
     global turn_off
     _logger.debug("Back selected")
     turn_off = True
@@ -289,7 +289,7 @@ def update_firmware():
         reboot()
 
 
-ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': turn_off,
+ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': shutdown,
        '4': reset_settings, '5': update_firmware, '6': reboot}
 
 

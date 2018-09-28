@@ -1,5 +1,4 @@
 import http.client as httplib
-import time
 import logging
 import os
 import socket
@@ -26,7 +25,7 @@ def get_ip():
         IP = s.getsockname()[0]
     except Exception:
         while not is_wifi_active():
-            if not have_internet()
+            if not have_internet():
                 IP = '127.0.0.1'
                 break
             else:
