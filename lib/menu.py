@@ -384,13 +384,15 @@ def main():
                             OLED1106.screen_drawing("config1")
                             time.sleep(5)
                         odoo = instance_connection()
-                        if odoo.uid is False:
-                            OLED1106.screen_drawing("comERR1")
-                            time.sleep(3)
-                            OLED1106.screen_drawing("comERR2")
-                            time.sleep(3)
-                            odoo = False
-                            OLED1106._display_msg("config1")
+                    while odoo.uid is False:
+                        OLED1106.screen_drawing("comERR1")
+                        time.sleep(3)
+                        OLED1106.screen_drawing("comERR2")
+                        time.sleep(3)
+                        del odoo
+                        OLED1106._display_msg("config1")
+                        time.sleep(3)
+                        odoo = instance_connection()
                 else:
                     pass
             if not on_menu:
