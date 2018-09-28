@@ -103,6 +103,7 @@ def inputStateDown(channel):
         _logger.debug('Down Pressed')
         on_Down = True
     else:
+        _logger.debug('Down is True')
         on_Down = False
 
 
@@ -112,6 +113,7 @@ def inputStateOK(channel):
         _logger.debug('OK Pressed')
         on_OK = True
     else:
+        _logger.debug('OK is True')
         on_OK = False
 
 
