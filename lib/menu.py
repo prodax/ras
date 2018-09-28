@@ -351,11 +351,9 @@ def main():
         menu_sel = 1
         pos = 0
         msg = " "
+        card = " "
 
         while not turn_off:
-            
-            card = " "
-
             while enter is False and on_menu:
                 enter, menu_sel, pos = select_menu(menu_sel, pos)
             # CHOSEN FUNCTIONALITY
