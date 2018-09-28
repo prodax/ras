@@ -24,10 +24,13 @@ def get_ip():
         # doesn't even have to be reachable
         s.connect(('8.8.8.8', 80))
         IP = s.getsockname()[0]
-    except Exception as e:
+    except Exception:
         while not is_wifi_active():
-            pass
-        IP = get_ip()
+            if not have_internet()
+                IP = '127.0.0.1'
+                break
+            else:
+                IP = get_ip()
     finally:
         s.close()
     return IP
