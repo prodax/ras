@@ -248,6 +248,10 @@ def shutdown():
     _logger.debug("Back selected")
     turn_off = True
 
+def reboot_system():
+    OLED1106.screen_drawing("shut_down")
+    time.sleep(1)
+    reboot()
 
 def settings():
     _logger.debug("Other settings selected")
@@ -284,13 +288,11 @@ def update_firmware():
         while updating:
             pass
         _logger.debug("Leaving update_firmware and rebooting")
-        OLED1106.screen_drawing("shut_down")
-        time.sleep(1)
-        reboot()
+        reboot_system()
 
 
 ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': shutdown,
-       '4': reset_settings, '5': update_firmware, '6': reboot}
+       '4': reset_settings, '5': update_firmware, '6': reboot_system}
 
 
 def select_menu(menu_sel, pos):
