@@ -14,7 +14,6 @@ _logger = logging.getLogger(__name__)
 
 WORK_DIR = '/home/pi/ras/'
 
-
 card_found = False
 
 cnt_found = 0
@@ -26,6 +25,9 @@ enter = False
 on_Down = False
 on_OK = False
 ap_mode = False
+
+on_Down_old = False
+on_OK_old = False
 
 tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
           '-10:00': "US/Hawaii", '-09:50': "Pacific/Marquesas",
@@ -103,7 +105,6 @@ def inputStateDown(channel):
         _logger.debug('Down Pressed')
         on_Down = True
     else:
-        _logger.debug('Down is True')
         on_Down = False
 
 
@@ -113,7 +114,6 @@ def inputStateOK(channel):
         _logger.debug('OK Pressed')
         on_OK = True
     else:
-        _logger.debug('OK is True')
         on_OK = False
 
 
@@ -297,8 +297,8 @@ ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': back,
 
 def select_menu(menu_sel, pos):
 
-    on_Down_old = False
-    on_OK_old = False
+    global on_Down_old
+    global on_OK_old
 
     if menu_sel == 1:
         OLED1106.display_menu('Main', pos)

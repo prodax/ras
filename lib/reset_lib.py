@@ -18,19 +18,18 @@ def is_wifi_active():
 
 
 def get_ip():
-    if is_wifi_active():
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        try:
-            # doesn't even have to be reachable
-            s.connect(('10.255.255.255', 1))
-            IP = s.getsockname()[0]
-        except Exception as e:
-            raise Exception
-        finally:
-            s.close()
-        return IP
-    else:
-        return 'unable'
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # doesn't even have to be reachable
+        s.connect(('8.8.8.8', 80))
+        IP = s.getsockname()[0]
+    except Exception as e:
+        IP = 'unable'
+        raise Exception
+    finally:
+        s.close()
+    return IP
+ 
 
 
 def reset_to_host_mode():
@@ -39,7 +38,7 @@ def reset_to_host_mode():
 
 def update_repo():
     os.chdir('/home/pi/ras')
-    os.system("sudo git fetch origin ")
+    os.system("sudo git fetch origin")
     os.system('sudo git reset --hard origin/refactoring_2')
 
 def reboot():
