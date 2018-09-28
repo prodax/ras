@@ -400,6 +400,7 @@ def main():
     else:
         if not is_wifi_active():
             configure_ap_mode()
+            display_drawing.dic.update
             main()
 
 
