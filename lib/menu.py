@@ -64,6 +64,32 @@ GPIO.setup(INPUT_PIN_OK, GPIO.IN)  # Set our input pin to be an input
 
 OLED1106 = display_drawing.DisplayDrawning()
 
+# Create a function to run when the input is high
+def inputStateDown(channel):
+    global on_Down
+    if on_Down is False:
+        _logger.debug('Down Pressed')
+        on_Down = True
+    else:
+        on_Down = False
+
+
+def inputStateOK(channel):
+    global on_OK
+    if on_OK is False:
+        _logger.debug('OK Pressed')
+        on_OK = True
+    else:
+        on_OK = False
+
+
+GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
+                      bouncetime=200)
+GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
+                      bouncetime=200)
+
+# Create an object of the class MFRC522
+MIFAREReader = MFRC522.MFRC522()
 
 def instance_connection():
     global admin_id
@@ -96,35 +122,6 @@ def instance_connection():
 
 
 odoo = instance_connection()
-
-
-# Create a function to run when the input is high
-def inputStateDown(channel):
-    global on_Down
-    if on_Down is False:
-        _logger.debug('Down Pressed')
-        on_Down = True
-    else:
-        on_Down = False
-
-
-def inputStateOK(channel):
-    global on_OK
-    if on_OK is False:
-        _logger.debug('OK Pressed')
-        on_OK = True
-    else:
-        on_OK = False
-
-
-GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
-                      bouncetime=200)
-GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
-                      bouncetime=200)
-
-# Create an object of the class MFRC522
-MIFAREReader = MFRC522.MFRC522()
-
 
 def print_wifi_config():
     global ap_mode
@@ -405,7 +402,7 @@ def main():
             main()
 
 
-def m_functionality():
+if __name__ == '__main__':
     _logger.debug("Starting up RAS")
     try:
         OLED1106.initial_display()
