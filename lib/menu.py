@@ -328,7 +328,7 @@ def select_menu(menu_sel, pos):
             # Check if the DOWN button is pressed
             if on_Down != on_Down_old:
                 pos = pos + 1
-                if pos > 2:
+                if pos > 3:
                     pos = 0
                 on_Down_old = on_Down
         except KeyboardInterrupt:
