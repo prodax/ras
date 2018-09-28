@@ -1,4 +1,5 @@
 import http.client as httplib
+import time
 import logging
 import os
 import socket
@@ -24,8 +25,9 @@ def get_ip():
         s.connect(('8.8.8.8', 80))
         IP = s.getsockname()[0]
     except Exception as e:
-        IP = 'unable'
-        raise Exception
+        while not is_wifi_active():
+            pass
+        IP = get_ip()
     finally:
         s.close()
     return IP
