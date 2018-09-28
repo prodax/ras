@@ -24,12 +24,15 @@ def get_ip():
         s.connect(('8.8.8.8', 80))
         IP = s.getsockname()[0]
     except Exception:
-        while not is_wifi_active():
+        IP = 'not determined'
+        wifi = is_wifi_active()
+        while not wifi:
             if not have_internet():
                 IP = '127.0.0.1'
                 break
             else:
                 IP = get_ip()
+                wifi = True
     finally:
         s.close()
     return IP
