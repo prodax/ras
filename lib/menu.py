@@ -28,9 +28,6 @@ ap_mode = False
 
 odoo = False
 
-on_Down_old = False
-on_OK_old = False
-
 tz_dic = {'-12:00': "Pacific/Kwajalein", '-11:00': "Pacific/Samoa",
           '-10:00': "US/Hawaii", '-09:50': "Pacific/Marquesas",
           '-09:00': "US/Alaska", '-08:00': "Etc/GMT-8", '-07:00': "Etc/GMT-7",
@@ -112,26 +109,21 @@ def instance_connection():
 # Create a function to run when the input is high
 def inputStateDown(channel):
     global on_Down
-    if on_Down is False:
-        _logger.debug('Down Pressed')
-        on_Down = True
-    else:
-        on_Down = False
+    _logger.debug('Down Pressed')
+    on_Down = True
 
 
 def inputStateOK(channel):
     global on_OK
-    if on_OK is False:
-        _logger.debug('OK Pressed')
-        on_OK = True
-    else:
-        on_OK = False
+    _logger.debug('OK Pressed')
+    on_OK = True
+
 
 
 GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
-                      bouncetime=200)
+                      bouncetime=400)
 GPIO.add_event_detect(INPUT_PIN_OK, GPIO.FALLING, callback=inputStateOK,
-                      bouncetime=200)
+                      bouncetime=400)
 
 # Create an object of the class MFRC522
 MIFAREReader = MFRC522.MFRC522()
@@ -316,31 +308,28 @@ ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': reboot_sys
 
 def select_menu(menu_sel, pos):
 
-    global on_Down_old
-    global on_OK_old
-
+    global on_OK
+    global on_Down
+    _logger.debug("select_menu("+str(menu_sel)+', '+str(pos)+": on_Down="+str(on_Down)+' and on_OK='+str(on_OK))
+    enter = False
     if menu_sel == 1:
         OLED1106.display_menu('Main', pos)
     elif menu_sel == 2:
         OLED1106.display_menu('Settings', pos)
-        try:
-            # Check if the OK button is pressed
-            if on_OK != on_OK_old:
-                enter = True
-                on_OK_old = on_OK
-            else:
-                enter = False
-            # Check if the DOWN button is pressed
-            if on_Down != on_Down_old:
-                pos = pos + 1
-                if pos > 3:
-                    pos = 0
-                on_Down_old = on_Down
-        except KeyboardInterrupt:
-            _logger.debug("KeyboardInterrupt")
-            raise KeyboardInterrupt
-    else:
-        enter = True
+    try:
+        # Check if the OK button is pressed
+        if on_OK:
+            enter = True
+            on_OK = False
+        # Check if the DOWN button is pressed
+        if on_Down:
+            pos = pos + 1
+            if pos > 3:
+                pos = 0
+            on_Down = False
+    except KeyboardInterrupt:
+        _logger.debug("KeyboardInterrupt")
+        raise KeyboardInterrupt
     return enter, pos
 
 
@@ -383,12 +372,12 @@ def main():
                                 WORK_DIR, 'dicts/data.json'))):
                         _logger.debug("No data.json available")
                         OLED1106._display_ip()
-                        time.sleep(5)
-                    odoo = instance_connection()
-                    if odoo.uid:
-                        OLED1106.display_drawing("configured")
-                        time.sleep(3)
+                        time.sleep(2)
                         on_menu = True
+                    odoo = instance_connection()
+                    if odoo.uid and on_menu:
+                        OLED1106._display_msg("configured")
+                        time.sleep(3)
                 while odoo.uid is False:
                     OLED1106.screen_drawing("comERR1")
                     time.sleep(3)
@@ -400,15 +389,16 @@ def main():
                     if odoo.uid:
                         OLED1106.display_drawing("configured")
                         time.sleep(3)
-                        on_menu = True
 
             else:
                 # TODO Add more move between menus functions
                 pass
             if not on_menu:
                 if menu_sel == 1:
+                    _logger.debug(str(ops[str(pos)]))
                     ops[str(pos)]()  # rfid_hr_attendance()
                 elif menu_sel == 2:
+                    _logger.debug(str(ops[str(pos + 4)]))
                     ops[str(pos + 4)]()
 
     else:

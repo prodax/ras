@@ -45,7 +45,7 @@ def reset_to_host_mode():
 
 def reset_params():
     global on_menu
-    os.system('sudo rm -R home/pi/ras/dicts/data.json')
+    os.system('sudo rm /home/pi/ras/dicts/data.json')
     on_menu = True
 
 def update_repo():
