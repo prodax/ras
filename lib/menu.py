@@ -8,7 +8,8 @@ import RPi.GPIO as GPIO
 
 from lib import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
 from lib.reset_lib import (have_internet, is_wifi_active, reboot,
-                           reset_to_host_mode, update_repo, run_tests)
+                           reset_to_host_mode, update_repo, run_tests,
+                           reset_params)
 
 _logger = logging.getLogger(__name__)
 
@@ -198,6 +199,7 @@ def scan_card(MIFAREReader, odoo):
         _logger.debug(card)
         if card == admin_id:
             on_menu = True
+            return
             # turn_off = True
         # This is the default key for authentication
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
@@ -266,6 +268,13 @@ def reboot_system():
 def settings():
     _logger.debug("Other settings selected")
 
+def reset_parameters():
+    global on_menu
+    _logger.debug("Resetting parameters")
+    if os.path.isfile(os.path.abspath(
+            os.path.join(WORK_DIR, 'dicts/data.json'))):
+        reset_params()
+    on_menu = True
 
 def updating_repo():
     global updating
@@ -301,8 +310,8 @@ def update_firmware():
         reboot_system()
 
 
-ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': shutdown,
-       '4': reset_settings, '5': update_firmware, '6': reboot_system}
+ops = {'0': rfid_hr_attendance, '1': rfid_reader, '2': settings, '3': reboot_system,
+       '4': reset_settings, '5': update_firmware, '6': reset_parameters}
 
 
 def select_menu(menu_sel, pos):
@@ -312,22 +321,6 @@ def select_menu(menu_sel, pos):
 
     if menu_sel == 1:
         OLED1106.display_menu('Main', pos)
-        try:
-            # Check if the OK button is pressed
-            if on_OK != on_OK_old:
-                enter = True
-                on_OK_old = on_OK
-            else:
-                enter = False
-            # Check if the DOWN button is pressed
-            if on_Down != on_Down_old:
-                pos = pos + 1
-                if pos > 3:
-                    pos = 0
-                on_Down_old = on_Down
-        except KeyboardInterrupt:
-            _logger.debug("KeyboardInterrupt")
-            raise KeyboardInterrupt
     elif menu_sel == 2:
         OLED1106.display_menu('Settings', pos)
         try:
@@ -344,10 +337,11 @@ def select_menu(menu_sel, pos):
                     pos = 0
                 on_Down_old = on_Down
         except KeyboardInterrupt:
-            _logger.debug("KeyboardInterrupt on buttons")
+            _logger.debug("KeyboardInterrupt")
+            raise KeyboardInterrupt
     else:
         enter = True
-    return enter, menu_sel, pos
+    return enter, pos
 
 
 def main():
@@ -365,7 +359,7 @@ def main():
 
         while not turn_off:
             while enter is False and on_menu:
-                enter, menu_sel, pos = select_menu(menu_sel, pos)
+                enter, pos = select_menu(menu_sel, pos)
             # CHOSEN FUNCTIONALITY
             if enter:
                 enter = False
@@ -378,8 +372,8 @@ def main():
                 # BACK FROM SETTINGS
                 elif menu_sel == 2 and pos == 3:
                     menu_sel = 1
-                    pos = 0
-                    on_menu = True
+                    pos = 2
+                    on_menu = True         
             if menu_sel == 1 and pos == 0:
                 while not odoo:
                     _logger.debug("No Odoo connection available")
@@ -391,6 +385,10 @@ def main():
                         OLED1106._display_ip()
                         time.sleep(5)
                     odoo = instance_connection()
+                    if odoo.uid:
+                        OLED1106.display_drawing("configured")
+                        time.sleep(3)
+                        on_menu = True
                 while odoo.uid is False:
                     OLED1106.screen_drawing("comERR1")
                     time.sleep(3)
@@ -399,6 +397,11 @@ def main():
                     OLED1106._display_ip()
                     time.sleep(3)
                     odoo = instance_connection()
+                    if odoo.uid:
+                        OLED1106.display_drawing("configured")
+                        time.sleep(3)
+                        on_menu = True
+
             else:
                 # TODO Add more move between menus functions
                 pass
