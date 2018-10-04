@@ -40,12 +40,12 @@ class OdooXmlRPC(object):
             _logger.debug("Odoo Connection can't return user_id")
             return False
 
-    def check_attendance(self, card):
+    def run(self, card):
         try:
             object_facade = self._get_object_facade('object')
-            res = object_facade.execute(
-                self.db, self.uid, self.pswd, "hr.employee",
-                "register_attendance", card)
+            res = object_facade.execute_kw(
+                self.db, self.uid, self.pswd, "iot.device",
+                "call_device", [],{'serial':'1111111', 'rfid': card})
             _logger.debug(res)
             return res
         except Exception as e:

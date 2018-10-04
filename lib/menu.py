@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import time
-
+from lib.messages import msg_dict
 import RPi.GPIO as GPIO
 
 from lib import MFRC522, PasBuz, display_drawing, odoo_xmlrpc
@@ -179,9 +179,8 @@ def scan_card(MIFAREReader, odoo):
         # _logger.debug(UID)
         _logger.debug(
             "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
-        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
-            -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
-                   -1]
+        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[-1] + \
+            hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[-1]
 
         _logger.debug(card)
         if card == admin_id:
@@ -205,14 +204,12 @@ def scan_card(MIFAREReader, odoo):
             if odoo:
                 res = odoo.check_attendance(card)
                 if res:
-                    msg = res["action"]
+                    msg = res["msg"]
                     _logger.debug(msg)
-                    if res["action"] == "check_in":
-                        PBuzzer.CheckIn()  # Acoustic Melody for Check In
-                    if res["action"] == "check_out":
-                        PBuzzer.CheckOut()  # Acoustic Melody for Check Out
-                    if res["action"] == "FALSE":
-                        PBuzzer.BuzError()  # Acoustic Melody for Error - RFID Card is not in Database
+                    PBuzzer.InitBuz()
+                    for buzzer in res["buzzer"]:
+                        PBuzzer.PlayBuz(buzzer[0], buzzer[1], buzzer[2])
+                    PBuzzer.ResetBuz()
     return card, msg
 
 
@@ -245,7 +242,7 @@ def shutdown():
 
 
 def reboot_system():
-    OLED1106.screen_drawing("shut_down")
+    OLED1106.screen_drawing(msg_dict["shut_down"])
     time.sleep(1)
     reboot()
 
@@ -274,7 +271,7 @@ def print_update_repo():
     global updating
     while updating:
         _logger.debug("Display updating firmware")
-        OLED1106.screen_drawing("update")
+        OLED1106.screen_drawing(msg_dict["update"])
         time.sleep(4)
 
 
@@ -358,21 +355,20 @@ def main():
                 while not odoo:
                     _logger.debug("No Odoo connection available")
                     while not os.path.isfile(
-                            os.path.abspath(
-                                os.path.join(
-                                    WORK_DIR, 'dicts/data.json'))):
+                        os.path.abspath(
+                            os.path.join(WORK_DIR, 'dicts/data.json'))):
                         _logger.debug("No data.json available")
                         OLED1106._display_ip()
                         time.sleep(2)
                         on_menu = True
                     odoo = instance_connection()
                     if odoo.uid and on_menu:
-                        OLED1106._display_msg("configured")
+                        OLED1106._display_msg(msg_dict["configured"])
                         time.sleep(3)
                 while odoo.uid is False:
-                    OLED1106.screen_drawing("comERR1")
+                    OLED1106.screen_drawing(msg_dict["comERR1"])
                     time.sleep(3)
-                    OLED1106.screen_drawing("comERR2")
+                    OLED1106.screen_drawing(msg_dict["comERR2"])
                     time.sleep(3)
                     OLED1106._display_ip()
                     time.sleep(3)

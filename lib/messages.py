@@ -1,0 +1,11 @@
+msg_dict = [ ' ': [" ", 0, 1, 0, 0, 24],
+    'shut_down': ['Rebooting', 6, 1, 0, 0, 24],
+    '1': ['1', 50, 1, 0, 0, 50],
+    '2': ['2', 50, 1, 0, 0, 50],
+    'Wifi1': ['Wi-Fi;Connection', 35, 2, 15, 0, 20],
+    'Wifi2': ['Connect to AP;RFID Attendance System', 30, 2, 10, 0, 12],
+    'Wifi3': ['Browse 192.168.42.1;for Wi-Fi Configuration', 20, 2, 10, 0, 12],
+    'update': ['Updating;Firmware', 20, 2, 20, 0, 24],
+    'comERR1': ['Odoo;communication;failed', 41, 3, 5, 40, 19],
+    'comERR2': ['Check;connection;parameters', 41, 3, 20, 20, 19],
+    'configured': ['Odoo;connection;ready', 40, 3, 20, 40, 19],]
