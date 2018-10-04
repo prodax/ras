@@ -202,7 +202,7 @@ def scan_card(MIFAREReader, odoo):
             MIFAREReader.MFRC522_Read(8)
             MIFAREReader.MFRC522_StopCrypto1()
             if odoo:
-                res = odoo.check_attendance(card)
+                res = odoo.run(card)
                 if res:
                     msg = res["msg"]
                     _logger.debug(msg)
