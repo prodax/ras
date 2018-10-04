@@ -196,6 +196,7 @@ def scan_card(MIFAREReader, odoo):
         # Authenticate
         status = MIFAREReader.MFRC522_Auth(MIFAREReader.PICC_AUTHENT1A, 8, key,
                                            uid)
+        _logger.debug("%s of card %s", status, card)
 
         # Check if authenticated
         if status == MIFAREReader.MI_OK:
@@ -394,7 +395,6 @@ def main():
     else:
         if not is_wifi_active():
             configure_ap_mode()
-            display_drawing.dic.update
             main()
 
 
