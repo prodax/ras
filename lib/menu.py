@@ -179,9 +179,8 @@ def scan_card(MIFAREReader, odoo):
         # _logger.debug(UID)
         _logger.debug(
             "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
-        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
-            -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
-                   -1]
+        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[-1] + \
+            hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[-1]
 
         _logger.debug(card)
         if card == admin_id:
