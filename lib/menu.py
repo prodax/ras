@@ -185,7 +185,7 @@ def scan_card(MIFAREReader, odoo):
         _logger.debug(card)
         if card == admin_id:
             on_menu = True
-            return
+            return False, msg
         # This is the default key for authentication
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
