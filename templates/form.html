@@ -58,9 +58,9 @@
       <label for="admin_id">Admin ID:</label>
       <input type="text" id="admin_id" name="admin_id" placeholder="RFID 8-digit hex e.g. FFFFFFFF">
       <label for="timezone">Country:</label>
-      <select name="timezone" form="testform" value="{{ data['timezone'][0] }}">
+      <select name="timezone" form="testform">
         {% for tz in tz_dic %}
-        <option value="tz['value']" {% if tz == data['timezone'][0] %} selected="selected" {% endif %}>(GMT {{ tz['value'] }}) {{ tz['timezone'] }}</option>
+        <option value="tz['value']">(GMT {{ tz['value'] }}) {{ tz['timezone'] }}</option>
         {% endfor %}
       </select>
       <label for="https">Click the checkbox if your Odoo employs HTTPS: </label>
