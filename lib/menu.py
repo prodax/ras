@@ -254,6 +254,7 @@ def rfid_reader():
     if card:
         _logger.debug("%s RFID Card read", card)
         OLED1106.card_drawing(card)
+        time.sleep(3)
 
 
 def reset_settings():
