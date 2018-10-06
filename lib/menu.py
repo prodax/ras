@@ -396,17 +396,19 @@ def main():
                     if odoo.uid and on_menu:
                         OLED1106._display_msg("configured")
                         time.sleep(3)
-                while odoo.uid is False:
+                if odoo.uid is False:
                     OLED1106.screen_drawing("comERR1")
                     time.sleep(3)
                     OLED1106.screen_drawing("comERR2")
                     time.sleep(3)
-                    OLED1106._display_ip()
-                    time.sleep(3)
-                    odoo=instance_connection()
-                    if odoo.uid:
-                        OLED1106.display_drawing("configured")
+                    while odoo.uid is False:
+                        OLED1106._display_ip()
+                        rfid_reader()
                         time.sleep(3)
+                        odoo=instance_connection()
+                        if odoo.uid:
+                            OLED1106.display_drawing("configured")
+                            time.sleep(3)
 
             else:
                 # TODO Add more move between menus functions
