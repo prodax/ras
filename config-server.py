@@ -20,10 +20,10 @@ def form():
             json_data = json.load(json_file)
             json_file.close()
             return render_template('form.html', IP=str(get_ip()), port=3000,
-                                   data=json_data)
+                                   data=json_data, tz_dic=tz_dic)
         else:
             return render_template('form.html', IP=str(get_ip()), port=3000,
-                                   data=False)
+                                   data=False, tz_dic=tz_dic)
 
 
 @app.route('/result', methods=['POST', 'GET'])
@@ -38,7 +38,7 @@ def result():
                 os.path.join(WORK_DIR, 'dicts/data.json')), 'w+') as outfile:
             json.dump(dic, outfile)
         print(jsonarray)
-        return render_template("result.html", result=results , tz_dic = tz_dic)
+        return render_template("result.html", result=results)
 
 
 @app.route('/login', methods=['POST'])
