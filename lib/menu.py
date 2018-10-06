@@ -110,15 +110,17 @@ def instance_connection():
 
 # Create a function to run when the input is high
 def inputStateDown(channel):
-    global on_Down
+    global on_Down, on_menu
     _logger.debug('Down Pressed')
-    on_Down = True
+    if on_menu:
+        on_Down = True
 
 
 def inputStateOK(channel):
-    global on_OK
+    global on_OK, on_menu
     _logger.debug('OK Pressed')
-    on_OK = True
+    if on_menu:
+        on_OK = True
 
 
 GPIO.add_event_detect(INPUT_PIN_DOWN, GPIO.FALLING, callback=inputStateDown,
@@ -179,14 +181,24 @@ def scan_card(MIFAREReader, odoo):
         # _logger.debug(UID)
         _logger.debug(
             "Card read UID: %s,%s,%s,%s" % (uid[0], uid[1], uid[2], uid[3]))
+<<<<<<< HEAD
         card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[-1] + \
             hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[-1]
+=======
+        card = hex(int(uid[0])).split('x')[-1] + hex(int(uid[1])).split('x')[
+            -1] + hex(int(uid[2])).split('x')[-1] + hex(int(uid[3])).split('x')[
+                   -1]
+>>>>>>> cbdf4d42e107988559089acba09eed9d7a17c3b1
 
         _logger.debug(card)
         if card == admin_id:
             on_menu = True
+<<<<<<< HEAD
             card = False
             return card, msg
+=======
+            return
+>>>>>>> cbdf4d42e107988559089acba09eed9d7a17c3b1
         # This is the default key for authentication
         key = [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
 
@@ -220,7 +232,11 @@ def rfid_hr_attendance():
     card, msg = scan_card(MIFAREReader, odoo)
     if card:
         OLED1106.screen_drawing(msg)
+<<<<<<< HEAD
         time.sleep(2)
+=======
+        time.sleep(5)
+>>>>>>> cbdf4d42e107988559089acba09eed9d7a17c3b1
     else:
         OLED1106.screen_drawing("time")
 
@@ -230,8 +246,11 @@ def rfid_reader():
     if card:
         _logger.debug("%s RFID Card read", card)
         OLED1106.card_drawing(card)
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> cbdf4d42e107988559089acba09eed9d7a17c3b1
 
 
 def reset_settings():
