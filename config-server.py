@@ -1,6 +1,7 @@
 from flask import Flask, flash, render_template, request, session
 import os, json
 from lib.reset_lib import get_ip
+from lib.menu import tz_dic
 
 app = Flask(__name__)
 
@@ -37,7 +38,7 @@ def result():
                 os.path.join(WORK_DIR, 'dicts/data.json')), 'w+') as outfile:
             json.dump(dic, outfile)
         print(jsonarray)
-        return render_template("result.html", result=results)
+        return render_template("result.html", result=results , tz_dic = tz_dic)
 
 
 @app.route('/login', methods=['POST'])
